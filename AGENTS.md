@@ -68,3 +68,16 @@ This file gives coding agents general and stack-specific engineering conventions
 - Keep database migrations intentional and reviewable. Do not edit generated migration history casually after it has been shared.
 - Keep Drizzle schema definitions, migrations, database connection setup, and test database helpers in clear database-focused modules.
 - Use SQLite for local development and tests unless the project documentation explicitly says otherwise.
+
+## Brevity Rules
+
+- Prefer concise updates. Say what changed, what was verified, and what remains.
+- Do not restate the full task or requirements unless correcting a misunderstanding.
+- Avoid long explanations of obvious code. Explain intent, tradeoffs, and risky parts only.
+- When reporting file changes, group related files instead of describing every small edit.
+- For command output, summarize the important result instead of pasting full logs.
+- For plans, use short milestones and concrete outcomes. Avoid implementation essays.
+- For final responses, keep to 3-6 bullets or 1-3 short paragraphs unless the user asks for detail.
+- Include exact errors, failing test names, file paths, and commands when they matter.
+- Do not include “next steps” unless they are actionable and relevant.
+- If nothing was tested, say that briefly and why.
