@@ -1,0 +1,23 @@
+{
+  "name": "expense-tracker",
+  "private": true,
+  "workspaces": [
+    "packages/backend",
+    "packages/frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w packages/backend\" \"npm run dev -w packages/frontend\"",
+    "test": "npm run test -w packages/backend && npm run test -w packages/frontend",
+    "lint": "eslint packages --ext .ts,.tsx",
+    "format": "prettier --write packages",
+    "format:check": "prettier --check packages"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  }
+}
