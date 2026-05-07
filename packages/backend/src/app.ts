@@ -1,16 +1,27 @@
 import express, { type Application } from 'express';
 import { pinoHttp } from 'pino-http';
+import passport from 'passport';
 import { logger } from './logger.js';
 import { healthRouter } from './routes/health.js';
+import { createAuthRouter } from './routes/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { createSessionMiddleware } from './auth/session.js';
+import { registerStrategies } from './auth/strategies.js';
+import { getDb } from './db/connection.js';
 
-export function createApp(): Application {
+export function createApp(db = getDb()): Application {
   const app = express();
+
+  registerStrategies(db);
 
   app.use(express.json());
   app.use(pinoHttp({ logger }));
+  app.use(createSessionMiddleware());
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   app.use('/health', healthRouter);
+  app.use('/api/auth', createAuthRouter(db));
 
   app.use((_req, res) => {
     res.status(404).json({
