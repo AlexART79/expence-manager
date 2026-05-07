@@ -18,10 +18,11 @@ describe('users table', () => {
       .returning()
       .all();
 
-    expect(inserted.id).toBeTypeOf('number');
-    expect(inserted.email).toBe('test@example.com');
-    expect(inserted.provider).toBe('test');
-    expect(inserted.createdAt).toBeInstanceOf(Date);
+    expect(inserted).toBeDefined();
+    expect(inserted!.id).toBeTypeOf('number');
+    expect(inserted!.email).toBe('test@example.com');
+    expect(inserted!.provider).toBe('test');
+    expect(inserted!.createdAt).toBeInstanceOf(Date);
   });
 
   it('rejects duplicate provider+providerUserId', () => {
