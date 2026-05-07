@@ -28,6 +28,18 @@ export function createTestDatabase() {
   `);
   database.db.run(sql`create unique index sessions_token_hash_idx on sessions (token_hash)`);
   database.db.run(sql`create index sessions_user_idx on sessions (user_id)`);
+  database.db.run(sql`
+    create table categories (
+      id integer primary key autoincrement,
+      user_id integer not null references users(id) on delete cascade,
+      name text not null,
+      normalized_name text not null,
+      created_at integer not null,
+      updated_at integer not null
+    )
+  `);
+  database.db.run(sql`create index categories_user_idx on categories (user_id)`);
+  database.db.run(sql`create unique index categories_user_name_idx on categories (user_id, normalized_name)`);
 
   return database;
 }

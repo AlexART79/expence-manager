@@ -33,3 +33,21 @@ export const sessions = sqliteTable(
     userIdx: index("sessions_user_idx").on(table.userId)
   })
 );
+
+export const categories = sqliteTable(
+  "categories",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    normalizedName: text("normalized_name").notNull(),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull()
+  },
+  (table) => ({
+    userIdx: index("categories_user_idx").on(table.userId),
+    userNameIdx: uniqueIndex("categories_user_name_idx").on(table.userId, table.normalizedName)
+  })
+);

@@ -1,6 +1,6 @@
 # Personal Expense Tracker
 
-Local MVP scaffold for a multi-user personal expense tracker. The full product direction is tracked in `docs/implementation-plan.md`; this branch implements Phase 1 authentication and user identity.
+Local MVP scaffold for a multi-user personal expense tracker. The full product direction is tracked in `docs/implementation-plan.md`; this branch implements authentication, user identity, and category management.
 
 ## Stack
 
@@ -10,8 +10,8 @@ Local MVP scaffold for a multi-user personal expense tracker. The full product d
 
 ## Package Layout
 
-- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, and backend tests.
-- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, API client, logger wrapper, and frontend tests.
+- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, category API, and backend tests.
+- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category management UI, API client, logger wrapper, and frontend tests.
 
 ## Local Setup
 
@@ -76,9 +76,22 @@ Auth endpoints:
 - `GET /api/auth/me`
 - `POST /api/auth/logout`
 
+## Categories
+
+Signed-in users can create, list, rename, and delete their own categories from the authenticated home screen. Category data is isolated by session user, and duplicate names are rejected per user after trimming and case-insensitive normalization.
+
+Category endpoints:
+
+- `GET /api/categories`
+- `POST /api/categories` with `{ "name": "Groceries" }`
+- `PATCH /api/categories/:categoryId` with `{ "name": "Food" }`
+- `DELETE /api/categories/:categoryId`
+
+Category deletion policy: deletion is blocked with `409 CONFLICT` when transactions exist for that category. Stage 3 will add the full transactions workflow.
+
 For tests and local smoke checks without real provider calls, set `AUTH_TEST_MODE=true` and visit:
 
 - `http://localhost:3000/api/auth/google/callback?code=test-google`
 - `http://localhost:3000/api/auth/github/callback?code=test-github`
 
-Categories, transactions, budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.
+Transactions, budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.

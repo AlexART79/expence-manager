@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import type { AuthClient } from "./auth/authClient";
+import type { CategoryClient } from "./categories/categoryClient";
 
 function createAuthClient(overrides: Partial<AuthClient>): AuthClient {
   return {
@@ -12,6 +13,24 @@ function createAuthClient(overrides: Partial<AuthClient>): AuthClient {
     ...overrides
   } as AuthClient;
 }
+
+function createCategoryClient(overrides: Partial<CategoryClient>): CategoryClient {
+  return {
+    listCategories: vi.fn().mockResolvedValue([]),
+    createCategory: vi.fn(),
+    renameCategory: vi.fn(),
+    deleteCategory: vi.fn(),
+    ...overrides
+  } as CategoryClient;
+}
+
+const signedInUser = {
+  id: 1,
+  provider: "google" as const,
+  email: "google.user@example.com",
+  displayName: "Google Test User",
+  avatarUrl: null
+};
 
 describe("App shell", () => {
   beforeEach(() => {
@@ -77,19 +96,120 @@ describe("App shell", () => {
     render(
       <App
         authClient={createAuthClient({
-          getCurrentUser: vi.fn().mockResolvedValue({
-            id: 1,
-            provider: "google",
-            email: "google.user@example.com",
-            displayName: "Google Test User",
-            avatarUrl: null
-          })
+          getCurrentUser: vi.fn().mockResolvedValue(signedInUser)
         })}
       />
     );
 
     expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/");
+  });
+
+  it("loads categories on the authenticated homepage", async () => {
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([
+            { id: 1, name: "Groceries", createdAt: 123, updatedAt: 123 },
+            { id: 2, name: "Rent", createdAt: 124, updatedAt: 124 }
+          ])
+        })}
+      />
+    );
+
+    expect(await screen.findByRole("heading", { name: "Categories" })).toBeInTheDocument();
+    expect(await screen.findByText("Groceries")).toBeInTheDocument();
+    expect(await screen.findByText("Rent")).toBeInTheDocument();
+  });
+
+  it("shows an empty category state after loading", async () => {
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({ listCategories: vi.fn().mockResolvedValue([]) })}
+      />
+    );
+
+    expect(await screen.findByText("No categories yet")).toBeInTheDocument();
+  });
+
+  it("trims category input, blocks blank names, and creates a category", async () => {
+    const user = userEvent.setup();
+    const createCategory = vi
+      .fn()
+      .mockResolvedValue({ id: 1, name: "Groceries", createdAt: 123, updatedAt: 123 });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({ createCategory })}
+      />
+    );
+
+    await user.type(await screen.findByLabelText("Category name"), "   ");
+    await user.click(screen.getByRole("button", { name: "Add category" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Category name is required");
+    expect(createCategory).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByLabelText("Category name"));
+    await user.type(screen.getByLabelText("Category name"), "  Groceries  ");
+    await user.click(screen.getByRole("button", { name: "Add category" }));
+
+    await waitFor(() => expect(createCategory).toHaveBeenCalledWith("Groceries"));
+    expect(await screen.findByText("Groceries")).toBeInTheDocument();
+  });
+
+  it("renames categories inline and asks for approval before deletion", async () => {
+    const user = userEvent.setup();
+    const renameCategory = vi.fn().mockResolvedValue({ id: 1, name: "Food", createdAt: 123, updatedAt: 456 });
+    const deleteCategory = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Groceries", createdAt: 123, updatedAt: 123 }]),
+          renameCategory,
+          deleteCategory
+        })}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Rename Groceries" }));
+    expect(screen.getByLabelText("Rename category").closest("li")).toHaveClass("sm:items-end");
+
+    await user.clear(screen.getByLabelText("Rename category"));
+    await user.type(screen.getByLabelText("Rename category"), "Food");
+    await user.click(screen.getByRole("button", { name: "Save category name" }));
+
+    await waitFor(() => expect(renameCategory).toHaveBeenCalledWith(1, "Food"));
+    expect(await screen.findByText("Food")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Delete Food" }));
+
+    expect(deleteCategory).not.toHaveBeenCalled();
+    expect(screen.getByText("Are you sure you want to delete category Food?")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Yes, delete Food" }));
+
+    await waitFor(() => expect(deleteCategory).toHaveBeenCalledWith(1));
+    expect(screen.queryByText("Food")).not.toBeInTheDocument();
+  });
+
+  it("shows category API errors without leaving the authenticated screen", async () => {
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockRejectedValue(new Error("Failed to load categories"))
+        })}
+      />
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Failed to load categories");
+    expect(screen.getByRole("heading", { name: "Categories" })).toBeInTheDocument();
   });
 
   it("renders the authenticated header with avatar and current user identity", async () => {

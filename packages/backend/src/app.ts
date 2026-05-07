@@ -3,6 +3,7 @@ import type { Express } from "express";
 import cors from "cors";
 import { pinoHttp } from "pino-http";
 import { createAuthRouter } from "./auth/routes.js";
+import { createCategoryRouter } from "./categories/routes.js";
 import { database as defaultDatabase } from "./db/connection.js";
 import type { DatabaseHandle } from "./db/connection.js";
 import { createEnv } from "./env.js";
@@ -39,6 +40,7 @@ export function createApp(options: CreateAppOptions = {}) {
   app.use(express.json());
   app.use(healthRouter);
   app.use(createAuthRouter(appDatabase, appEnv));
+  app.use(createCategoryRouter(appDatabase, appEnv));
   options.configureRoutes?.(app);
   app.use(notFoundHandler);
   app.use(errorHandler);

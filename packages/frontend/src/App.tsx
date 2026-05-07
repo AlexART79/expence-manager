@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { authClient as defaultAuthClient } from "./auth/authClient";
 import type { AuthClient, AuthProvider, CurrentUser } from "./auth/authClient";
+import { categoryClient as defaultCategoryClient } from "./categories/categoryClient";
+import type { Category, CategoryClient } from "./categories/categoryClient";
 
 type AppProps = {
   isLoading?: boolean;
   authClient?: AuthClient;
+  categoryClient?: CategoryClient;
 };
 
 type AppRoute = "/" | "/login";
 
-export function App({ isLoading = false, authClient = defaultAuthClient }: AppProps) {
+export function App({ isLoading = false, authClient = defaultAuthClient, categoryClient = defaultCategoryClient }: AppProps) {
   const [isDark, setIsDark] = useState(true);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -89,7 +92,13 @@ export function App({ isLoading = false, authClient = defaultAuthClient }: AppPr
       ) : route === "/login" || !user ? (
         <LoginPage authClient={authClient} isDark={isDark} setIsDark={setIsDark} />
       ) : (
-        <HomePage user={user} isDark={isDark} setIsDark={setIsDark} onLogout={handleLogout} />
+        <HomePage
+          user={user}
+          isDark={isDark}
+          setIsDark={setIsDark}
+          onLogout={handleLogout}
+          categoryClient={categoryClient}
+        />
       )}
     </div>
   );
@@ -150,12 +159,14 @@ function HomePage({
   user,
   isDark,
   setIsDark,
-  onLogout
+  onLogout,
+  categoryClient
 }: {
   user: CurrentUser | null;
   isDark: boolean;
   setIsDark: (value: boolean) => void;
   onLogout: () => void;
+  categoryClient: CategoryClient;
 }) {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,rgb(var(--color-surface)),rgb(var(--color-surface-muted)))]">
@@ -173,14 +184,7 @@ function HomePage({
       </header>
 
       <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-lg border border-white/10 bg-surface-muted p-6 shadow-xl shadow-black/10">
-          <p className="text-sm font-medium text-accent-strong">Signed-in dashboard</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-normal text-text">Your finance cockpit is ready.</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-text-muted">
-            Categories, transactions, budgets, and alerts will land here in the next stages. For now, auth is visibly
-            active and refresh-safe.
-          </p>
-        </section>
+        <CategoryManager categoryClient={categoryClient} />
 
         <section className="grid gap-4 md:grid-cols-3">
           {["Monthly flow", "Budget guardrails", "Upcoming alerts"].map((label) => (
@@ -195,6 +199,289 @@ function HomePage({
       </main>
     </div>
   );
+}
+
+function CategoryManager({ categoryClient }: { categoryClient: CategoryClient }) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [newName, setNewName] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    setIsLoadingCategories(true);
+    categoryClient
+      .listCategories()
+      .then((loadedCategories) => {
+        if (isCurrent) {
+          setCategories(loadedCategories);
+          setError(null);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (isCurrent) {
+          setError(loadError instanceof Error ? loadError.message : "Failed to load categories");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsLoadingCategories(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [categoryClient]);
+
+  async function handleCreate() {
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+      setError("Category name is required");
+      return;
+    }
+
+    setPendingAction("create");
+    try {
+      const category = await categoryClient.createCategory(trimmedName);
+      setCategories((current) => [...current, category].sort(sortCategories));
+      setNewName("");
+      setError(null);
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : "Could not create category");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleRename(categoryId: number) {
+    const trimmedName = editingName.trim();
+    if (!trimmedName) {
+      setError("Category name is required");
+      return;
+    }
+
+    setPendingAction(`rename-${categoryId}`);
+    try {
+      const renamed = await categoryClient.renameCategory(categoryId, trimmedName);
+      setCategories((current) =>
+        current.map((category) => (category.id === renamed.id ? renamed : category)).sort(sortCategories)
+      );
+      setEditingId(null);
+      setEditingName("");
+      setError(null);
+    } catch (renameError) {
+      setError(renameError instanceof Error ? renameError.message : "Could not rename category");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleDelete(category: Category) {
+    setPendingAction(`delete-${category.id}`);
+    try {
+      await categoryClient.deleteCategory(category.id);
+      setCategories((current) => current.filter((item) => item.id !== category.id));
+      setDeleteConfirmationId(null);
+      setError(null);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Could not delete category");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-surface-muted p-5 shadow-xl shadow-black/10 sm:p-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-accent-strong">Spending structure</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-text">Categories</h2>
+        </div>
+        <p className="text-sm text-text-muted">{categories.length} active</p>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+        <label className="grid gap-2 text-sm font-medium text-text">
+          Category name
+          <input
+            className="min-h-11 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+            value={newName}
+            maxLength={60}
+            onChange={(event) => setNewName(event.target.value)}
+            placeholder="Groceries"
+          />
+        </label>
+        <button
+          type="button"
+          className="inline-flex min-h-11 items-center justify-center self-end rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-950"
+          disabled={pendingAction === "create"}
+          onClick={handleCreate}
+        >
+          {pendingAction === "create" ? "Adding" : "Add category"}
+        </button>
+      </div>
+
+      {error ? (
+        <p className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="mt-5">
+        {isLoadingCategories ? (
+          <div className="rounded-md border border-white/10 bg-surface px-4 py-5 text-sm text-text-muted" role="status">
+            Loading categories
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="rounded-md border border-dashed border-white/15 bg-surface px-4 py-6">
+            <p className="text-sm font-semibold text-text">No categories yet</p>
+            <p className="mt-1 text-sm text-text-muted">Add the first one to organize future transactions.</p>
+          </div>
+        ) : (
+          <ul className="grid gap-2">
+            {categories.map((category) => (
+              <li
+                key={category.id}
+                className={`flex flex-col gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 sm:flex-row ${
+                  editingId === category.id ? "sm:items-end" : "sm:items-center"
+                } sm:justify-between`}
+              >
+                {editingId === category.id ? (
+                  <label className="grid flex-1 gap-2 text-sm font-medium text-text">
+                    Rename category
+                    <input
+                      className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+                      value={editingName}
+                      maxLength={60}
+                      onChange={(event) => setEditingName(event.target.value)}
+                    />
+                  </label>
+                ) : (
+                  <div>
+                    <p className="font-semibold text-text">{category.name}</p>
+                    <p className="text-xs text-text-muted">Ready for transactions</p>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {editingId === category.id ? (
+                    <>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-9 items-center justify-center rounded-md bg-accent px-3 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+                        disabled={pendingAction === `rename-${category.id}`}
+                        onClick={() => handleRename(category.id)}
+                      >
+                        Save category name
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditingName("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <CategoryRowActions
+                      category={category}
+                      isConfirmingDelete={deleteConfirmationId === category.id}
+                      isDeleting={pendingAction === `delete-${category.id}`}
+                      onStartRename={() => {
+                        setDeleteConfirmationId(null);
+                        setEditingId(category.id);
+                        setEditingName(category.name);
+                      }}
+                      onAskDelete={() => setDeleteConfirmationId(category.id)}
+                      onCancelDelete={() => setDeleteConfirmationId(null)}
+                      onConfirmDelete={() => handleDelete(category)}
+                    />
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CategoryRowActions({
+  category,
+  isConfirmingDelete,
+  isDeleting,
+  onStartRename,
+  onAskDelete,
+  onCancelDelete,
+  onConfirmDelete
+}: {
+  category: Category;
+  isConfirmingDelete: boolean;
+  isDeleting: boolean;
+  onStartRename: () => void;
+  onAskDelete: () => void;
+  onCancelDelete: () => void;
+  onConfirmDelete: () => void;
+}) {
+  if (isConfirmingDelete) {
+    return (
+      <div className="flex flex-col gap-2 rounded-md border border-red-400/30 bg-red-500/10 p-3 sm:flex-row sm:items-center">
+        <p className="text-sm font-medium text-red-100">Are you sure you want to delete category {category.name}?</p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="inline-flex min-h-9 items-center justify-center rounded-md bg-red-300 px-3 text-sm font-semibold text-red-950 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+            disabled={isDeleting}
+            onClick={onConfirmDelete}
+          >
+            {isDeleting ? "Deleting" : `Yes, delete ${category.name}`}
+          </button>
+          <button
+            type="button"
+            className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+            onClick={onCancelDelete}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+        aria-label={`Rename ${category.name}`}
+        onClick={onStartRename}
+      >
+        Rename
+      </button>
+      <button
+        type="button"
+        className="inline-flex min-h-9 items-center justify-center rounded-md border border-red-400/30 px-3 text-sm font-medium text-red-200 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+        aria-label={`Delete ${category.name}`}
+        onClick={onAskDelete}
+      >
+        Delete
+      </button>
+    </>
+  );
+}
+
+function sortCategories(left: Category, right: Category) {
+  return left.name.localeCompare(right.name);
 }
 
 function LoadingScreen() {
