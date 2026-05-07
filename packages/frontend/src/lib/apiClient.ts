@@ -15,7 +15,29 @@ export class ApiClient {
       headers: { Accept: "application/json" }
     });
 
-    const body = (await response.json()) as unknown;
+    return this.handleResponse<T>(response);
+  }
+
+  public async post<T>(path: string, body?: unknown): Promise<T> {
+    const response = await this.fetcher(`${this.baseUrl}${this.normalizePath(path)}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
+  public buildUrl(path: string) {
+    return `${this.baseUrl}${this.normalizePath(path)}`;
+  }
+
+  private async handleResponse<T>(response: Response): Promise<T> {
+    const body = response.status === 204 ? null : ((await response.json()) as unknown);
 
     if (!response.ok) {
       throw new Error(this.extractErrorMessage(body, response.status));

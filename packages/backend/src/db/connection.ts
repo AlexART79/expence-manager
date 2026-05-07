@@ -16,4 +16,6 @@ export function createDatabase(databaseFile = env.databaseFile) {
   return { db, sqlite };
 }
 
+export type DatabaseHandle = ReturnType<typeof createDatabase>;
+
 export const database = createDatabase();

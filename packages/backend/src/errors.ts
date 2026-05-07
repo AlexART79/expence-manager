@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 
-export type ApiErrorCode = "NOT_FOUND" | "VALIDATION_ERROR" | "INTERNAL_ERROR";
+export type ApiErrorCode = "AUTH_ERROR" | "INTERNAL_ERROR" | "NOT_FOUND" | "UNAUTHENTICATED" | "VALIDATION_ERROR";
 
 export type ApiErrorBody = {
   error: {

@@ -1,6 +1,6 @@
 # Personal Expense Tracker
 
-Local MVP scaffold for a multi-user personal expense tracker. The full product direction is tracked in `docs/implementation-plan.md`; this branch implements Phase 0 project foundation only.
+Local MVP scaffold for a multi-user personal expense tracker. The full product direction is tracked in `docs/implementation-plan.md`; this branch implements Phase 1 authentication and user identity.
 
 ## Stack
 
@@ -10,8 +10,8 @@ Local MVP scaffold for a multi-user personal expense tracker. The full product d
 
 ## Package Layout
 
-- `packages/backend`: Express API, database setup, logging, validation, and backend tests.
-- `packages/frontend`: Vite React app shell, Tailwind theme foundation, API client, logger wrapper, and frontend tests.
+- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, and backend tests.
+- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, API client, logger wrapper, and frontend tests.
 
 ## Local Setup
 
@@ -19,6 +19,7 @@ Local MVP scaffold for a multi-user personal expense tracker. The full product d
 npm install
 cp packages/backend/.env.example packages/backend/.env
 cp packages/frontend/.env.example packages/frontend/.env
+npm run db:migrate --workspace @expense-tracker/backend
 npm run dev
 ```
 
@@ -34,6 +35,8 @@ npm test
 npm run typecheck
 npm run build
 npm run lint
+npm run db:generate --workspace @expense-tracker/backend
+npm run db:migrate --workspace @expense-tracker/backend
 ```
 
 ## Environment
@@ -46,13 +49,34 @@ Backend variables:
 - `DATABASE_FILE`: SQLite database file path.
 - `LOG_LEVEL`: Pino log level.
 - `CORS_ORIGIN`: frontend origin for later API/browser integration.
+- `FRONTEND_URL`: frontend redirect URL after successful OAuth callback.
+- `SESSION_SECRET`: secret used to hash opaque session tokens before persistence.
+- `AUTH_TEST_MODE`: set to `true` only for deterministic local/test auth callbacks.
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`: Google OIDC configuration.
+- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`: GitHub OAuth configuration.
 
 Frontend variables:
 
 - `VITE_API_BASE_URL`: backend API base URL.
 
-## Phase 0 Scope
+## Authentication
 
-Phase 0 provides installable workspace scaffolding, a health endpoint, structured backend request logging, frontend logging wrapper, typed API client shell, Tailwind light/dark theme foundation, Drizzle SQLite baseline, and smoke tests.
+Authentication is SSO-only through Google or GitHub. The backend stores a local user row keyed by `provider + provider_user_id`; email is profile data only and is not used for identity. Google and GitHub accounts are not linked in this MVP.
 
-OAuth, sessions, users, categories, transactions, budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.
+Successful callbacks create an opaque `expense_session` HTTP-only cookie. The raw token stays in the cookie, while only an HMAC hash is persisted in SQLite. Local development uses `SameSite=Lax` and non-secure cookies; production marks cookies secure.
+
+Auth endpoints:
+
+- `GET /auth/google/start`
+- `GET /auth/github/start`
+- `GET /auth/google/callback?code=...`
+- `GET /auth/github/callback?code=...`
+- `GET /auth/me`
+- `POST /auth/logout`
+
+For tests and local smoke checks without real provider calls, set `AUTH_TEST_MODE=true` and visit:
+
+- `http://127.0.0.1:4000/auth/google/callback?code=test-google`
+- `http://127.0.0.1:4000/auth/github/callback?code=test-github`
+
+Categories, transactions, budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.

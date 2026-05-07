@@ -1,20 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 import { createDatabase } from "../db/connection.js";
-import { phase0Metadata } from "../db/schema/index.js";
+import { users } from "../db/schema/index.js";
 import { createTestDatabase } from "./helpers/db.js";
 
 describe("database foundation", () => {
   it("creates an in-memory Drizzle SQLite database for tests", () => {
     const { db, sqlite } = createTestDatabase();
 
-    db.run(
-      sql`create table if not exists phase0_metadata (id integer primary key, label text not null)`
-    );
-    db.insert(phase0Metadata).values({ label: "ready" }).run();
+    db.run(sql`select 1`);
+    db.insert(users)
+      .values({
+        provider: "google",
+        providerUserId: "ready",
+        email: null,
+        displayName: "Ready",
+        avatarUrl: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      })
+      .run();
 
-    const row = db.select().from(phase0Metadata).get();
-    expect(row?.label).toBe("ready");
+    const row = db.select().from(users).get();
+    expect(row?.displayName).toBe("Ready");
 
     sqlite.close();
   });

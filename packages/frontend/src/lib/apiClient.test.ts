@@ -28,4 +28,25 @@ describe("ApiClient", () => {
 
     await expect(client.get("/health")).rejects.toThrow("Nope");
   });
+
+  it("posts JSON with credentials", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({})
+    });
+    const client = new ApiClient("http://localhost:4000", fetcher);
+
+    await client.post("/auth/logout");
+
+    expect(fetcher).toHaveBeenCalledWith("http://localhost:4000/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: undefined
+    });
+  });
 });

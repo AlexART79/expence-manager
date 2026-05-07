@@ -9,7 +9,16 @@ describe("environment validation", () => {
       BACKEND_PORT: "4010",
       DATABASE_FILE: ":memory:",
       LOG_LEVEL: "debug",
-      CORS_ORIGIN: "http://localhost:5173"
+      CORS_ORIGIN: "http://localhost:5173",
+      FRONTEND_URL: "http://localhost:5173",
+      SESSION_SECRET: "test-session-secret",
+      AUTH_TEST_MODE: "true",
+      GOOGLE_CLIENT_ID: "google-client",
+      GOOGLE_CLIENT_SECRET: "google-secret",
+      GOOGLE_REDIRECT_URI: "http://127.0.0.1:4000/auth/google/callback",
+      GITHUB_CLIENT_ID: "github-client",
+      GITHUB_CLIENT_SECRET: "github-secret",
+      GITHUB_REDIRECT_URI: "http://127.0.0.1:4000/auth/github/callback"
     });
 
     expect(env).toEqual({
@@ -18,7 +27,16 @@ describe("environment validation", () => {
       port: 4010,
       databaseFile: ":memory:",
       logLevel: "debug",
-      corsOrigin: "http://localhost:5173"
+      corsOrigin: "http://localhost:5173",
+      frontendUrl: "http://localhost:5173",
+      sessionSecret: "test-session-secret",
+      authTestMode: true,
+      googleClientId: "google-client",
+      googleClientSecret: "google-secret",
+      googleRedirectUri: "http://127.0.0.1:4000/auth/google/callback",
+      githubClientId: "github-client",
+      githubClientSecret: "github-secret",
+      githubRedirectUri: "http://127.0.0.1:4000/auth/github/callback"
     });
   });
 
