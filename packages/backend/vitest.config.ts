@@ -6,6 +6,8 @@ export default defineConfig({
     globals: false,
     env: {
       NODE_ENV: 'test',
+      // Override Vite's injected BASE_URL='/' which fails the URL validation in env.ts
+      BASE_URL: 'http://localhost:3000',
     },
   },
 });
