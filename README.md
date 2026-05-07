@@ -76,6 +76,59 @@ npm run test -w packages/frontend       # Run tests once
 npm run test:watch -w packages/frontend # Run tests in watch mode
 ```
 
+## OAuth Setup
+
+Authentication requires creating OAuth apps on Google and GitHub. Both are optional for running tests — the app falls back to a test-only login stub when credentials are absent — but are required to use the real sign-in flow.
+
+### Google
+
+1. Open [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials).
+2. Click **Create Credentials → OAuth client ID**.
+3. Choose **Web application**.
+4. Under **Authorized redirect URIs**, add:
+   ```
+   http://localhost:3000/api/auth/google/callback
+   ```
+5. Copy the **Client ID** and **Client secret** into `packages/backend/.env`:
+   ```
+   GOOGLE_CLIENT_ID=<your client id>
+   GOOGLE_CLIENT_SECRET=<your client secret>
+   ```
+
+Reference: [Google Identity — Setting up OAuth 2.0](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)
+
+### GitHub
+
+1. Open [GitHub → Settings → Developer settings → OAuth Apps](https://github.com/settings/developers).
+2. Click **New OAuth App**.
+3. Fill in:
+   - **Application name**: anything (e.g. `Expense Tracker Dev`)
+   - **Homepage URL**: `http://localhost:5173`
+   - **Authorization callback URL**:
+     ```
+     http://localhost:3000/api/auth/github/callback
+     ```
+4. Click **Register application**, then **Generate a new client secret**.
+5. Copy the **Client ID** and **Client secret** into `packages/backend/.env`:
+   ```
+   GITHUB_CLIENT_ID=<your client id>
+   GITHUB_CLIENT_SECRET=<your client secret>
+   ```
+
+Reference: [GitHub Docs — Creating an OAuth app](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
+
+### Session secret
+
+Generate a random string of at least 32 characters and set it in `packages/backend/.env`:
+
+```
+SESSION_SECRET=<random 32+ character string>
+```
+
+You can generate one with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+
+---
+
 ## Environment Variables
 
 ### `packages/backend/.env`
@@ -85,16 +138,18 @@ npm run test:watch -w packages/frontend # Run tests in watch mode
 | `PORT` | `3000` | HTTP server port |
 | `NODE_ENV` | `development` | Runtime environment (`development` \| `test` \| `production`) |
 | `DATABASE_URL` | `./data/app.db` | Path to the SQLite database file |
+| `SESSION_SECRET` | — | Secret for signing session cookies (min 32 chars) |
+| `BASE_URL` | `http://localhost:3000` | Public URL of the backend (used in OAuth callback URLs) |
+| `FRONTEND_URL` | `http://localhost:5173` | Public URL of the frontend (used for post-login redirect) |
+| `GOOGLE_CLIENT_ID` | — | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | — | Google OAuth client secret |
+| `GITHUB_CLIENT_ID` | — | GitHub OAuth app client ID |
+| `GITHUB_CLIENT_SECRET` | — | GitHub OAuth app client secret |
 | `LOG_LEVEL` | `debug` | Minimum log level (`debug` \| `info` \| `warn` \| `error` \| `silent`) |
 | `LOG_FORMAT` | `pretty` | Log output format (`pretty` \| `json`). Use `json` in production. |
 | `LOG_TO_CONSOLE` | `true` (non-test) | Write logs to stdout |
 | `LOG_TO_FILE` | `true` (non-test) | Write logs to `LOG_DIR/app.log` and `LOG_DIR/error.log` |
 | `LOG_DIR` | `logs/backend` | Directory for log files |
-| `GOOGLE_CLIENT_ID` | — | Google OAuth client ID *(required for Stage 1)* |
-| `GOOGLE_CLIENT_SECRET` | — | Google OAuth client secret *(required for Stage 1)* |
-| `GITHUB_CLIENT_ID` | — | GitHub OAuth app client ID *(required for Stage 1)* |
-| `GITHUB_CLIENT_SECRET` | — | GitHub OAuth app client secret *(required for Stage 1)* |
-| `SESSION_SECRET` | — | Secret for signing session cookies *(required for Stage 1)* |
 
 ### `packages/frontend/.env`
 

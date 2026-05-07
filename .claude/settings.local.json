@@ -5,7 +5,18 @@
       "Bash(npm install *)",
       "Bash(npm run *)",
       "Bash(npm test *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npm show *)",
+      "Bash(Test-Path *)",
+      "Bash(node -e \"const s = 'dev-secret-change-in-prod-32-chars!!'; console.log\\('length:', s.length\\)\")",
+      "Bash(cat packages/backend/vitest.config.ts)",
+      "Bash(cat packages/backend/vite.config.ts)",
+      "Bash(powershell *)",
+      "Bash(node -e ' *)",
+      "Bash(npx vitest *)",
+      "Bash(node --input-type=module --eval ' *)",
+      "Bash(node --input-type=module)",
+      "Bash(npm list *)"
     ]
   }
 }
