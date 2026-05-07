@@ -10,14 +10,19 @@ export interface TestServer {
 
 export function startTestServer(): Promise<TestServer> {
   return new Promise((resolve, reject) => {
-    const { db } = createTestDb();
+    const { db, sqlite } = createTestDb();
     const app = createApp(db);
     const server: Server = app.listen(0, () => {
       const { port } = server.address() as AddressInfo;
       resolve({
         url: `http://localhost:${port}`,
         close: () =>
-          new Promise<void>((res, rej) => server.close((err) => (err ? rej(err) : res()))),
+          new Promise<void>((res, rej) =>
+            server.close((err) => {
+              sqlite.close();
+              err ? rej(err) : res();
+            }),
+          ),
       });
     });
     server.on('error', reject);
