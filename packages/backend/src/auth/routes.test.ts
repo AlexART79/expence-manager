@@ -19,7 +19,7 @@ describe("auth routes", () => {
     const database = createTestDatabase();
     const app = createApp({ database });
 
-    const response = await request(app).get("/auth/me");
+    const response = await request(app).get("/api/auth/me");
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
@@ -36,7 +36,7 @@ describe("auth routes", () => {
     const database = createTestDatabase();
     const app = createApp({ database });
 
-    const callback = await request(app).get("/auth/google/callback?code=test-google");
+    const callback = await request(app).get("/api/auth/google/callback?code=test-google");
 
     expect(callback.status).toBe(302);
     expect(callback.headers.location).toBe("http://localhost:5173");
@@ -44,7 +44,7 @@ describe("auth routes", () => {
     expect(sessionCookie).toContain("expense_session=");
     expect(sessionCookie).toContain("HttpOnly");
 
-    const me = await request(app).get("/auth/me").set("Cookie", sessionCookie);
+    const me = await request(app).get("/api/auth/me").set("Cookie", sessionCookie);
     expect(me.status).toBe(200);
     expect(me.body).toEqual({
       user: {
@@ -63,8 +63,8 @@ describe("auth routes", () => {
     const database = createTestDatabase();
     const app = createApp({ database });
 
-    const callback = await request(app).get("/auth/github/callback?code=test-github");
-    const me = await request(app).get("/auth/me").set("Cookie", getSessionCookie(callback));
+    const callback = await request(app).get("/api/auth/github/callback?code=test-github");
+    const me = await request(app).get("/api/auth/me").set("Cookie", getSessionCookie(callback));
 
     expect(me.status).toBe(200);
     expect(me.body.user.provider).toBe("github");
@@ -77,11 +77,11 @@ describe("auth routes", () => {
   it("logs out by expiring the session and clearing the cookie", async () => {
     const database = createTestDatabase();
     const app = createApp({ database });
-    const callback = await request(app).get("/auth/google/callback?code=test-google");
+    const callback = await request(app).get("/api/auth/google/callback?code=test-google");
     const sessionCookie = getSessionCookie(callback);
 
-    const logout = await request(app).post("/auth/logout").set("Cookie", sessionCookie);
-    const me = await request(app).get("/auth/me").set("Cookie", sessionCookie);
+    const logout = await request(app).post("/api/auth/logout").set("Cookie", sessionCookie);
+    const me = await request(app).get("/api/auth/me").set("Cookie", sessionCookie);
 
     expect(logout.status).toBe(204);
     expect(getSessionCookie(logout)).toContain("expense_session=;");
@@ -94,7 +94,7 @@ describe("auth routes", () => {
     const database = createTestDatabase();
     const app = createApp({ database });
 
-    const response = await request(app).get("/auth/not-a-provider/callback?code=test");
+    const response = await request(app).get("/api/auth/not-a-provider/callback?code=test");
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({

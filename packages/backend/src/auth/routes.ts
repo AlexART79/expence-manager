@@ -10,7 +10,7 @@ import { upsertUserFromProvider } from "./users.js";
 export function createAuthRouter(database: DatabaseHandle, env: AppEnv) {
   const router = Router();
 
-  router.get("/auth/:provider/start", (req, res, next) => {
+  router.get("/api/auth/:provider/start", (req, res, next) => {
     const provider = parseProvider(req.params.provider, next);
     if (!provider) {
       return;
@@ -19,7 +19,7 @@ export function createAuthRouter(database: DatabaseHandle, env: AppEnv) {
     res.redirect(buildProviderStartUrl(provider, env));
   });
 
-  router.get("/auth/:provider/callback", async (req, res, next) => {
+  router.get("/api/auth/:provider/callback", async (req, res, next) => {
     try {
       const provider = parseProvider(req.params.provider, next);
       if (!provider) {
@@ -41,7 +41,7 @@ export function createAuthRouter(database: DatabaseHandle, env: AppEnv) {
     }
   });
 
-  router.get("/auth/me", (req, res, next) => {
+  router.get("/api/auth/me", (req, res, next) => {
     const user = resolveCurrentUser(req, database, env);
     if (!user) {
       next(new ApiError(401, "UNAUTHENTICATED", "Authentication required"));
@@ -51,7 +51,7 @@ export function createAuthRouter(database: DatabaseHandle, env: AppEnv) {
     res.json({ user });
   });
 
-  router.post("/auth/logout", requireAuth(database, env), (req, res) => {
+  router.post("/api/auth/logout", requireAuth(database, env), (req, res) => {
     expireSession(database.db, readSessionToken(req.headers.cookie), env);
     clearSessionCookie(res, env);
     res.status(204).send();

@@ -23,7 +23,7 @@ npm run db:migrate --workspace @expense-tracker/backend
 npm run dev
 ```
 
-Backend dev server uses the fixed address `http://127.0.0.1:4000`. Frontend dev server uses the fixed address `http://localhost:5173`. If either port is busy, the dev server fails so you can stop the conflicting process or change the port intentionally.
+Backend dev server uses the fixed address `http://localhost:3000`. Frontend dev server uses the fixed address `http://localhost:5173`. If either port is busy, the dev server fails so you can stop the conflicting process or change the port intentionally.
 
 ## Commands
 
@@ -65,18 +65,20 @@ Authentication is SSO-only through Google or GitHub. The backend stores a local 
 
 Successful callbacks create an opaque `expense_session` HTTP-only cookie. The raw token stays in the cookie, while only an HMAC hash is persisted in SQLite. Local development uses `SameSite=Lax` and non-secure cookies; production marks cookies secure.
 
+The frontend uses `/login` for unauthenticated sign-in. Anonymous visits to `/` are redirected to `/login`; signed-in users are redirected away from `/login` back to `/` and see their name/avatar in the header.
+
 Auth endpoints:
 
-- `GET /auth/google/start`
-- `GET /auth/github/start`
-- `GET /auth/google/callback?code=...`
-- `GET /auth/github/callback?code=...`
-- `GET /auth/me`
-- `POST /auth/logout`
+- `GET /api/auth/google/start`
+- `GET /api/auth/github/start`
+- `GET /api/auth/google/callback?code=...`
+- `GET /api/auth/github/callback?code=...`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
 
 For tests and local smoke checks without real provider calls, set `AUTH_TEST_MODE=true` and visit:
 
-- `http://127.0.0.1:4000/auth/google/callback?code=test-google`
-- `http://127.0.0.1:4000/auth/github/callback?code=test-github`
+- `http://localhost:3000/api/auth/google/callback?code=test-google`
+- `http://localhost:3000/api/auth/github/callback?code=test-github`
 
 Categories, transactions, budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.

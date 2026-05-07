@@ -7,11 +7,11 @@ describe("ApiClient", () => {
       ok: true,
       json: async () => ({ status: "ok" })
     });
-    const client = new ApiClient("http://localhost:4000", fetcher);
+    const client = new ApiClient("http://localhost:3000", fetcher);
 
     const result = await client.get<{ status: string }>("/health");
 
-    expect(fetcher).toHaveBeenCalledWith("http://localhost:4000/health", {
+    expect(fetcher).toHaveBeenCalledWith("http://localhost:3000/health", {
       credentials: "include",
       headers: { Accept: "application/json" }
     });
@@ -24,7 +24,7 @@ describe("ApiClient", () => {
       status: 500,
       json: async () => ({ error: { message: "Nope" } })
     });
-    const client = new ApiClient("http://localhost:4000", fetcher);
+    const client = new ApiClient("http://localhost:3000", fetcher);
 
     await expect(client.get("/health")).rejects.toThrow("Nope");
   });
@@ -35,11 +35,11 @@ describe("ApiClient", () => {
       status: 204,
       json: async () => ({})
     });
-    const client = new ApiClient("http://localhost:4000", fetcher);
+    const client = new ApiClient("http://localhost:3000", fetcher);
 
-    await client.post("/auth/logout");
+    await client.post("/api/auth/logout");
 
-    expect(fetcher).toHaveBeenCalledWith("http://localhost:4000/auth/logout", {
+    expect(fetcher).toHaveBeenCalledWith("http://localhost:3000/api/auth/logout", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -48,5 +48,28 @@ describe("ApiClient", () => {
       },
       body: undefined
     });
+  });
+
+  it("keeps the native fetch window binding when using the default fetcher", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetcher = vi.fn(function (this: typeof globalThis) {
+      if (this !== globalThis) {
+        throw new TypeError("Illegal invocation");
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ status: "ok" })
+      } as Response);
+    });
+    globalThis.fetch = fetcher as typeof fetch;
+
+    try {
+      const client = new ApiClient("http://localhost:3000");
+
+      await expect(client.get("/health")).resolves.toEqual({ status: "ok" });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

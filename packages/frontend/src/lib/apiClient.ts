@@ -4,7 +4,7 @@ export class ApiClient {
   private readonly baseUrl: string;
   private readonly fetcher: Fetcher;
 
-  public constructor(baseUrl: string, fetcher: Fetcher = fetch) {
+  public constructor(baseUrl: string, fetcher: Fetcher = (...args) => globalThis.fetch(...args)) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.fetcher = fetcher;
   }
@@ -67,4 +67,4 @@ export class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000");
+export const apiClient = new ApiClient(import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000");

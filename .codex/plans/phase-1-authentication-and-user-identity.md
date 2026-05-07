@@ -4,7 +4,7 @@
 
 ## Summary
 
-Implement Stage 1 from `docs/implementation-plan.md`: SSO-only auth with Google and GitHub, local user creation, persistent HTTP-only cookie sessions, `/auth/me` bootstrap, logout, frontend auth entry UI, and deterministic tests with mocked providers. Use no account linking: Google and GitHub identities create separate local users.
+Implement Stage 1 from `docs/implementation-plan.md`: SSO-only auth with Google and GitHub, local user creation, persistent HTTP-only cookie sessions, `/api/auth/me` bootstrap, logout, frontend auth entry UI, and deterministic tests with mocked providers. Use no account linking: Google and GitHub identities create separate local users.
 
 ## Key Changes
 
@@ -24,14 +24,14 @@ Implement Stage 1 from `docs/implementation-plan.md`: SSO-only auth with Google 
   - `auth/session`: create, hash, read, validate, expire sessions.
   - `auth/providers`: Google OIDC and GitHub OAuth adapters that exchange callback codes and normalize profiles.
   - `auth/testProvider`: enabled only when `AUTH_TEST_MODE=true`, returning deterministic provider users without network calls.
-  - `auth/routes`: `GET /auth/:provider/start`, `GET /auth/:provider/callback`, `GET /auth/me`, `POST /auth/logout`.
+  - `auth/routes`: `GET /api/auth/:provider/start`, `GET /api/auth/:provider/callback`, `GET /api/auth/me`, `POST /api/auth/logout`.
   - `auth/requireAuth`: middleware that resolves `currentUser` for later phases.
   - Return existing API error shape for unauthenticated, invalid provider, validation, and callback failures.
 
 - Add frontend auth flow:
   - Extend `ApiClient` with `post`.
   - Add typed auth client helpers for `getCurrentUser`, `logout`, and provider login URL construction.
-  - Update `App` to bootstrap `/auth/me` on load, show auth entry when unauthenticated, show authenticated shell when signed in, and support logout.
+  - Update `App` to bootstrap `/api/auth/me` on load, show auth entry when unauthenticated, show authenticated shell when signed in, and support logout.
   - Keep the Phase 0 theme toggle and loading-capable main area.
 
 - Update docs:
@@ -43,8 +43,8 @@ Implement Stage 1 from `docs/implementation-plan.md`: SSO-only auth with Google 
 - Backend tests:
   - User upsert creates a user for first SSO login and reuses the same user for the same `provider + providerUserId`.
   - Test-mode Google and GitHub callback creates a local user and sets an HTTP-only session cookie.
-  - `GET /auth/me` returns `401` without a session and current user with a valid session.
-  - `POST /auth/logout` expires the session and clears the cookie.
+  - `GET /api/auth/me` returns `401` without a session and current user with a valid session.
+  - `POST /api/auth/logout` expires the session and clears the cookie.
   - Invalid provider and failed callback paths return the shared API error shape.
 
 - Frontend tests:

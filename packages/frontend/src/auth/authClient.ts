@@ -26,7 +26,7 @@ export class AuthClient {
 
   public async getCurrentUser(): Promise<CurrentUser | null> {
     try {
-      const body = await this.api.get<unknown>("/auth/me");
+      const body = await this.api.get<unknown>("/api/auth/me");
       return currentUserResponseSchema.parse(body).user;
     } catch (error) {
       if (error instanceof Error && error.message === "Authentication required") {
@@ -38,11 +38,11 @@ export class AuthClient {
   }
 
   public async logout(): Promise<void> {
-    await this.api.post<void>("/auth/logout");
+    await this.api.post<void>("/api/auth/logout");
   }
 
   public getProviderLoginUrl(provider: AuthProvider) {
-    return this.api.buildUrl(`/auth/${provider}/start`);
+    return this.api.buildUrl(`/api/auth/${provider}/start`);
   }
 }
 

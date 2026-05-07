@@ -15,10 +15,10 @@ describe("environment validation", () => {
       AUTH_TEST_MODE: "true",
       GOOGLE_CLIENT_ID: "google-client",
       GOOGLE_CLIENT_SECRET: "google-secret",
-      GOOGLE_REDIRECT_URI: "http://127.0.0.1:4000/auth/google/callback",
+      GOOGLE_REDIRECT_URI: "http://localhost:3000/api/auth/google/callback",
       GITHUB_CLIENT_ID: "github-client",
       GITHUB_CLIENT_SECRET: "github-secret",
-      GITHUB_REDIRECT_URI: "http://127.0.0.1:4000/auth/github/callback"
+      GITHUB_REDIRECT_URI: "http://localhost:3000/api/auth/github/callback"
     });
 
     expect(env).toEqual({
@@ -33,10 +33,10 @@ describe("environment validation", () => {
       authTestMode: true,
       googleClientId: "google-client",
       googleClientSecret: "google-secret",
-      googleRedirectUri: "http://127.0.0.1:4000/auth/google/callback",
+      googleRedirectUri: "http://localhost:3000/api/auth/google/callback",
       githubClientId: "github-client",
       githubClientSecret: "github-secret",
-      githubRedirectUri: "http://127.0.0.1:4000/auth/github/callback"
+      githubRedirectUri: "http://localhost:3000/api/auth/github/callback"
     });
   });
 

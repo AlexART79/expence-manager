@@ -8,23 +8,48 @@ function createAuthClient(overrides: Partial<AuthClient>): AuthClient {
   return {
     getCurrentUser: vi.fn(),
     logout: vi.fn(),
-    getProviderLoginUrl: vi.fn((provider) => `http://localhost:4000/auth/${provider}/start`),
+    getProviderLoginUrl: vi.fn((provider) => `http://localhost:3000/api/auth/${provider}/start`),
     ...overrides
   } as AuthClient;
 }
 
 describe("App shell", () => {
-  it("renders the unauthenticated auth entry after bootstrap", async () => {
+  beforeEach(() => {
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("redirects unauthenticated homepage visitors to the login page", async () => {
     render(<App authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(null) })} />);
 
-    expect(screen.getByRole("heading", { name: "Personal Expense Tracker" })).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: "Continue with Google" })).toHaveAttribute(
-      "href",
-      "http://localhost:4000/auth/google/start"
+    expect(await screen.findByRole("heading", { name: "Sign in to Expense Tracker" })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/login");
+  });
+
+  it("shows a bootstrap error instead of silently treating API failures as logged out", async () => {
+    render(
+      <App
+        authClient={createAuthClient({
+          getCurrentUser: vi.fn().mockRejectedValue(new Error("Failed to fetch"))
+        })}
+      />
     );
-    expect(screen.getByRole("link", { name: "Continue with GitHub" })).toHaveAttribute(
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not verify your session");
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("renders a dedicated login page with recognizable provider buttons", async () => {
+    window.history.replaceState({}, "", "/login");
+
+    render(<App authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(null) })} />);
+
+    expect(await screen.findByRole("link", { name: /Continue with Google/ })).toHaveAttribute(
       "href",
-      "http://localhost:4000/auth/github/start"
+      "http://localhost:3000/api/auth/google/start"
+    );
+    expect(screen.getByRole("link", { name: /Continue with GitHub/ })).toHaveAttribute(
+      "href",
+      "http://localhost:3000/api/auth/github/start"
     );
   });
 
@@ -39,14 +64,16 @@ describe("App shell", () => {
     render(<App authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(null) })} />);
 
     const root = screen.getByTestId("app-root");
-    expect(root).not.toHaveClass("dark");
-
-    await user.click(screen.getByRole("button", { name: "Switch to dark theme" }));
-
     expect(root).toHaveClass("dark");
+
+    await user.click(await screen.findByRole("button", { name: "Switch to light theme" }));
+
+    expect(root).not.toHaveClass("dark");
   });
 
-  it("renders the authenticated shell with current user identity", async () => {
+  it("redirects authenticated login visitors to the protected homepage", async () => {
+    window.history.replaceState({}, "", "/login");
+
     render(
       <App
         authClient={createAuthClient({
@@ -61,7 +88,30 @@ describe("App shell", () => {
       />
     );
 
-    expect(await screen.findByText("Google Test User")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Home" })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("renders the authenticated header with avatar and current user identity", async () => {
+    render(
+      <App
+        authClient={createAuthClient({
+          getCurrentUser: vi.fn().mockResolvedValue({
+            id: 1,
+            provider: "google",
+            email: "google.user@example.com",
+            displayName: "Google Test User",
+            avatarUrl: "https://example.com/avatar.png"
+          })
+        })}
+      />
+    );
+
+    expect(await screen.findByRole("img", { name: "Google Test User avatar" })).toHaveAttribute(
+      "src",
+      "https://example.com/avatar.png"
+    );
+    expect(screen.getByText("Google Test User")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
   });
 
@@ -86,6 +136,7 @@ describe("App shell", () => {
     await user.click(await screen.findByRole("button", { name: "Log out" }));
 
     await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
-    expect(await screen.findByRole("link", { name: "Continue with GitHub" })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /Continue with GitHub/ })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/login");
   });
 });

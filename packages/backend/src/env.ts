@@ -4,7 +4,7 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   BACKEND_HOST: z.string().min(1).default("127.0.0.1"),
-  BACKEND_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  BACKEND_PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_FILE: z.string().min(1).default("./data/app.db"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
@@ -16,10 +16,10 @@ const envSchema = z.object({
     .transform((value) => value === "true"),
   GOOGLE_CLIENT_ID: z.string().default(""),
   GOOGLE_CLIENT_SECRET: z.string().default(""),
-  GOOGLE_REDIRECT_URI: z.string().url().default("http://127.0.0.1:4000/auth/google/callback"),
+  GOOGLE_REDIRECT_URI: z.string().url().default("http://localhost:3000/api/auth/google/callback"),
   GITHUB_CLIENT_ID: z.string().default(""),
   GITHUB_CLIENT_SECRET: z.string().default(""),
-  GITHUB_REDIRECT_URI: z.string().url().default("http://127.0.0.1:4000/auth/github/callback")
+  GITHUB_REDIRECT_URI: z.string().url().default("http://localhost:3000/api/auth/github/callback")
 });
 
 export type AppEnv = {
