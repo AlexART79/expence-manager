@@ -1,15 +1,24 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import App from '../App.tsx';
+import * as authLib from '../lib/auth.ts';
 
 describe('App', () => {
-  it('renders the app shell header', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders the app shell header', async () => {
+    vi.spyOn(authLib, 'getCurrentUser').mockResolvedValue(null);
+
     render(
       <MemoryRouter>
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByText('Expense Tracker')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Expense Tracker')).toBeInTheDocument();
+    });
   });
 });
