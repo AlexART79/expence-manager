@@ -11,7 +11,10 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 
 ## Current UI Boundaries
 
-- `src/App.tsx`: auth bootstrap, browser route guard, theme state, login/home composition.
+- `src/App.tsx`: auth bootstrap, browser route guard, theme state, and top-level screen selection.
+- `src/auth/LoginPage.tsx`: auth entry page and provider links.
+- `src/auth/AuthErrorScreen.tsx`: session-check failure UI.
+- `src/home/HomePage.tsx`: authenticated dashboard composition.
 - `src/categories/CategoryManager.tsx`: category loading, create, rename, delete, pending state, and errors.
 - `src/categories/CategoryCreateForm.tsx`: category create controls only.
 - `src/categories/CategoryRow.tsx`: single category row display, inline rename, inline delete confirmation.
@@ -20,12 +23,14 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 - `src/transactions/TransactionForm.tsx`: reusable create/edit transaction fields and actions.
 - `src/transactions/TransactionRow.tsx`: single transaction row display, inline edit, inline delete confirmation.
 - `src/transactions/transactionFormState.ts`: transaction form/filter factories, validation, API input mapping, and sorting.
-- `src/components`: cross-feature UI only, such as theme and delete confirmation.
+- `src/components`: cross-feature UI and shell primitives, such as theme, loading, header, user menu, and delete confirmation.
+- `src/components/UserMenu.tsx`: current-user identity, avatar image handling, initials fallback, and logout action.
 
 ## Change Placement
 
 - Put new category UI in `src/categories` unless it is truly shared.
 - Put new transaction UI in `src/transactions` unless it is truly shared.
+- Put auth-only screens in `src/auth` and authenticated page composition in `src/home`.
 - Put shared visual primitives in `src/components` only after at least two features need them or the abstraction is obvious.
 - Put raw HTTP details in client modules, not inside React components.
 - Keep non-visual form helpers in a separate module when they are reused by create/edit flows or are worth testing directly.
@@ -35,6 +40,7 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 - Keep destructive actions explicit and inline. Use `DeleteConfirmationOverlay` for category and transaction delete flows.
 - Do not replace inline delete confirmation with a modal without a user request.
 - Preserve the current accessible labels and button names unless intentionally updating tests and UX copy together.
+- Preserve the authenticated header identity pattern: show an avatar when it loads, fall back to initials when `avatarUrl` is missing or the image errors, keep the user name/provider label, and keep logout aligned with the user menu.
 - Preserve layout classes protected by tests:
   - Category edit rows: `sm:items-end`.
   - Category normal rows: `sm:items-center`.

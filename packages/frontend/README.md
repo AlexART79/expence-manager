@@ -31,14 +31,21 @@ src/
   styles.css                      Tailwind layers, theme tokens, mode transition animation
   auth/
     authClient.ts                 Auth API client and auth types
+    AuthErrorScreen.tsx           Session-check failure screen
+    LoginPage.tsx                 Auth entry page and provider buttons
   categories/
     CategoryManager.tsx           Category CRUD state, loading, errors, persistence calls
     CategoryCreateForm.tsx        New category input and submit button
     CategoryRow.tsx               Category display, inline rename, inline delete confirmation
     categoryClient.ts             Category API client and category types
   components/
+    AppHeader.tsx                 Authenticated page header
     DeleteConfirmationOverlay.tsx Shared inline destructive-action confirmation
+    LoadingScreen.tsx             Full-page loading status
     ThemeButton.tsx               Dark/light theme toggle button
+    UserMenu.tsx                  Current-user identity, avatar/initials fallback, logout action
+  home/
+    HomePage.tsx                  Authenticated dashboard composition
   lib/
     apiClient.ts                  Shared HTTP client wrapper
     logger.ts                     Frontend logging wrapper
@@ -55,7 +62,7 @@ src/
 
 ## UI Ownership
 
-`App.tsx` should stay small. It owns authentication bootstrap, simple browser routing between `/` and `/login`, top-level theme state, and page composition. Feature-specific CRUD state should live in the feature manager component, such as `CategoryManager` or `TransactionManager`.
+`App.tsx` should stay small. It owns authentication bootstrap, simple browser routing between `/` and `/login`, top-level theme state, and choosing which top-level screen to render. Page-level layout belongs in `LoginPage`, `AuthErrorScreen`, `LoadingScreen`, or `HomePage`. Feature-specific CRUD state should live in the feature manager component, such as `CategoryManager` or `TransactionManager`.
 
 Category UI is split by responsibility:
 
@@ -73,9 +80,16 @@ Transaction UI follows the same pattern:
 
 Shared components belong in `src/components` only when more than one feature uses them or the component is clearly cross-feature UI.
 
+Authenticated shell UI:
+
+- `AppHeader` renders the right-aligned theme control and current-user menu.
+- `UserMenu` shows the user avatar when it loads successfully and falls back to initials when `avatarUrl` is missing or the image fails to load.
+- Keep the user name, provider label, and logout action visible in the authenticated header.
+
 ## Interaction Rules
 
 - Destructive actions use inline confirmation through `DeleteConfirmationOverlay`.
+- User avatars must not leave a broken image icon visible; failed avatar loads fall back to initials with an accessible label.
 - Category rename rows use `sm:items-end`; normal category rows use `sm:items-center`.
 - Transaction edit rows use `md:grid-cols-1 md:items-end`; normal transaction rows use `md:grid-cols-[1fr_auto] md:items-center`.
 - Preserve accessible labels and button names because the UI tests use them as behavior contracts.
@@ -83,7 +97,7 @@ Shared components belong in `src/components` only when more than one feature use
 
 ## Testing Notes
 
-`src/App.test.tsx` covers the main shell and authenticated category/transaction flows. Client modules also have focused tests beside their implementation files.
+`src/App.test.tsx` covers the main shell, authenticated header identity, avatar fallback, and authenticated category/transaction flows. Client modules also have focused tests beside their implementation files.
 
 Use a focused run while changing UI behavior:
 

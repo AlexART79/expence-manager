@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -494,6 +494,28 @@ describe("App shell", () => {
     );
     expect(screen.getByText("Google Test User")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
+  });
+
+  it("falls back to initials when the current user's avatar image cannot load", async () => {
+    render(
+      <App
+        authClient={createAuthClient({
+          getCurrentUser: vi.fn().mockResolvedValue({
+            id: 1,
+            provider: "github",
+            email: null,
+            displayName: "GitHub Test User",
+            avatarUrl: "https://example.com/missing-avatar.png"
+          })
+        })}
+      />
+    );
+
+    fireEvent.error(await screen.findByRole("img", { name: "GitHub Test User avatar" }));
+
+    expect(screen.queryByRole("img", { name: "GitHub Test User avatar" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("GitHub Test User initials")).toHaveTextContent("GT");
+    expect(screen.getByText("GitHub Test User")).toBeInTheDocument();
   });
 
   it("logs out and returns to the auth entry state", async () => {

@@ -1,0 +1,15 @@
+export function AuthErrorScreen({ message }: { message: string }) {
+  return (
+    <main className="grid min-h-screen place-items-center px-4">
+      <section className="w-full max-w-md rounded-lg border border-red-400/30 bg-surface-muted p-6 shadow-xl shadow-black/15">
+        <p className="text-sm font-semibold text-red-300" role="alert">
+          Could not verify your session
+        </p>
+        <p className="mt-3 text-sm leading-6 text-text-muted">
+          The backend did not complete the session check. Restart the frontend dev server, then refresh this page.
+        </p>
+        <p className="mt-4 rounded-md bg-surface px-3 py-2 text-xs text-text-muted">{message}</p>
+      </section>
+    </main>
+  );
+}
