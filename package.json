@@ -12,6 +12,7 @@
     "dev:frontend": "npm run dev --workspace @expense-tracker/frontend",
     "build": "npm run build --workspaces",
     "test": "npm test --workspaces",
+    "seed": "npm run seed --workspace @expense-tracker/backend",
     "typecheck": "npm run typecheck --workspaces",
     "lint": "npm run lint --workspaces"
   },

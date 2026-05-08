@@ -25,3 +25,25 @@
 body {
   margin: 0;
 }
+
+.mode-transition {
+  animation: mode-fade-slide 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-transition {
+    animation: none;
+  }
+}
+
+@keyframes mode-fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -191,6 +191,7 @@ describe("App shell", () => {
 
     await user.click(await screen.findByRole("button", { name: "Rename Groceries" }));
     expect(screen.getByLabelText("Rename category").closest("li")).toHaveClass("sm:items-end");
+    expect(screen.getByLabelText("Rename category").closest("li")).toHaveClass("mode-transition");
 
     await user.clear(screen.getByLabelText("Rename category"));
     await user.type(screen.getByLabelText("Rename category"), "Food");
@@ -202,7 +203,9 @@ describe("App shell", () => {
     await user.click(screen.getByRole("button", { name: "Delete Food" }));
 
     expect(deleteCategory).not.toHaveBeenCalled();
-    expect(screen.getByText("Are you sure you want to delete category Food?")).toBeInTheDocument();
+    const confirmationMessage = screen.getByText("Are you sure you want to delete category Food?");
+    expect(confirmationMessage).toBeInTheDocument();
+    expect(confirmationMessage.closest("[data-delete-confirmation-overlay]")).toHaveClass("absolute");
 
     await user.click(screen.getByRole("button", { name: "Yes, delete Food" }));
 
@@ -338,6 +341,122 @@ describe("App shell", () => {
       })
     );
     expect(await screen.findByText("Lunch")).toBeInTheDocument();
+  });
+
+  it("edits transactions inline without opening the create form above the list", async () => {
+    const user = userEvent.setup();
+    const updateTransaction = vi.fn().mockResolvedValue({
+      id: 1,
+      categoryId: 1,
+      title: "Dinner",
+      amount: "18.25",
+      amountCents: 1825,
+      transactionDate: "2026-05-09",
+      notes: "soup",
+      currency: "USD",
+      createdAt: 123,
+      updatedAt: 456
+    });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Food", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({
+          listTransactions: vi.fn().mockResolvedValue([
+            {
+              id: 1,
+              categoryId: 1,
+              title: "Lunch",
+              amount: "12.50",
+              amountCents: 1250,
+              transactionDate: "2026-05-08",
+              notes: null,
+              currency: "USD",
+              createdAt: 123,
+              updatedAt: 123
+            }
+          ]),
+          updateTransaction
+        })}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Edit Lunch" }));
+
+    const titleInput = screen.getByLabelText("Edit transaction title");
+    const editRow = titleInput.closest("li");
+
+    expect(editRow).toHaveClass("md:items-end");
+    expect(editRow).toHaveClass("mode-transition");
+    expect(editRow).toContainElement(screen.getByDisplayValue("12.50"));
+    expect(screen.queryByLabelText("Transaction title")).not.toBeInTheDocument();
+
+    await user.clear(titleInput);
+    await user.type(titleInput, "Dinner");
+    await user.clear(screen.getByLabelText("Edit amount"));
+    await user.type(screen.getByLabelText("Edit amount"), "18.25");
+    await user.clear(screen.getByLabelText("Edit transaction date"));
+    await user.type(screen.getByLabelText("Edit transaction date"), "2026-05-09");
+    await user.type(screen.getByLabelText("Edit notes"), "soup");
+    await user.click(screen.getByRole("button", { name: "Save transaction changes" }));
+
+    await waitFor(() =>
+      expect(updateTransaction).toHaveBeenCalledWith(1, {
+        title: "Dinner",
+        amount: "18.25",
+        transactionDate: "2026-05-09",
+        categoryId: 1,
+        notes: "soup",
+        currency: "USD"
+      })
+    );
+    expect(await screen.findByText("Dinner")).toBeInTheDocument();
+  });
+
+  it("asks for approval before deleting transactions without moving the row layout", async () => {
+    const user = userEvent.setup();
+    const deleteTransaction = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Food", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({
+          listTransactions: vi.fn().mockResolvedValue([
+            {
+              id: 1,
+              categoryId: 1,
+              title: "Lunch",
+              amount: "12.50",
+              amountCents: 1250,
+              transactionDate: "2026-05-08",
+              notes: null,
+              currency: "USD",
+              createdAt: 123,
+              updatedAt: 123
+            }
+          ]),
+          deleteTransaction
+        })}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Delete Lunch" }));
+
+    expect(deleteTransaction).not.toHaveBeenCalled();
+    const confirmationMessage = screen.getByText("Are you sure you want to delete transaction Lunch?");
+    expect(confirmationMessage).toBeInTheDocument();
+    expect(confirmationMessage.closest("[data-delete-confirmation-overlay]")).toHaveClass("absolute");
+
+    await user.click(screen.getByRole("button", { name: "Yes, delete Lunch" }));
+
+    await waitFor(() => expect(deleteTransaction).toHaveBeenCalledWith(1));
+    expect(screen.queryByText("Lunch")).not.toBeInTheDocument();
   });
 
   it("renders the authenticated header with avatar and current user identity", async () => {

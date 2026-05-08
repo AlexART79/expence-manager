@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { authClient as defaultAuthClient } from "./auth/authClient";
 import type { AuthClient, AuthProvider, CurrentUser } from "./auth/authClient";
 import { categoryClient as defaultCategoryClient } from "./categories/categoryClient";
@@ -336,6 +337,7 @@ function TransactionManager({
   function startCreate() {
     setEditingTransaction(null);
     setForm(createEmptyTransactionForm());
+    setDeleteConfirmationId(null);
     setIsFormOpen(true);
   }
 
@@ -349,7 +351,8 @@ function TransactionManager({
       notes: transaction.notes ?? "",
       currency: transaction.currency
     });
-    setIsFormOpen(true);
+    setDeleteConfirmationId(null);
+    setIsFormOpen(false);
   }
 
   return (
@@ -441,95 +444,29 @@ function TransactionManager({
         </button>
       </div>
 
-      {isFormOpen ? (
-        <div className="mt-5 rounded-md border border-white/10 bg-surface p-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-medium text-text">
-              Transaction title
-              <input
-                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
-                value={form.title}
-                maxLength={120}
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                placeholder="Lunch"
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-text">
-              Amount
-              <input
-                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
-                inputMode="decimal"
-                value={form.amount}
-                onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
-                placeholder="12.50"
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-text">
-              Transaction date
-              <input
-                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
-                type="date"
-                value={form.transactionDate}
-                onChange={(event) => setForm((current) => ({ ...current, transactionDate: event.target.value }))}
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-text">
-              Category
-              <select
-                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
-                value={form.categoryId}
-                onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
-              >
-                <option value="">Choose category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-text">
-              Currency
-              <select
-                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
-                value={form.currency}
-                onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value as "USD" }))}
-              >
-                <option value="USD">USD</option>
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-text md:col-span-2">
-              Notes
-              <textarea
-                className="min-h-20 rounded-md border border-white/10 bg-surface-muted px-3 py-2 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
-                value={form.notes}
-                maxLength={500}
-                onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-                placeholder="Optional"
-              />
-            </label>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-              disabled={pendingAction === "create-transaction" || pendingAction === `update-${editingTransaction?.id}`}
-              onClick={handleSaveTransaction}
-            >
-              Save transaction
-            </button>
-            <button
-              type="button"
-              className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/10 px-4 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-              onClick={() => {
-                setIsFormOpen(false);
-                setEditingTransaction(null);
-                setForm(createEmptyTransactionForm());
-              }}
-            >
-              Cancel
-            </button>
-          </div>
+      {isFormOpen && !editingTransaction ? (
+        <div className="mode-transition mt-5 rounded-md border border-white/10 bg-surface p-4">
+          <TransactionFormFields
+            categories={categories}
+            form={form}
+            setForm={setForm}
+            labels={{
+              title: "Transaction title",
+              amount: "Amount",
+              transactionDate: "Transaction date",
+              category: "Category",
+              notes: "Notes"
+            }}
+          />
+          <TransactionFormActions
+            saveLabel="Save transaction"
+            isSaving={pendingAction === "create-transaction"}
+            onSave={handleSaveTransaction}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setForm(createEmptyTransactionForm());
+            }}
+          />
         </div>
       ) : null}
 
@@ -558,63 +495,203 @@ function TransactionManager({
             {transactions.map((transaction) => (
               <li
                 key={transaction.id}
-                className="grid gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 md:grid-cols-[1fr_auto] md:items-center"
+                className={`mode-transition relative grid gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 transition-all duration-200 ease-out motion-reduce:transition-none ${
+                  editingTransaction?.id === transaction.id
+                    ? "md:grid-cols-1 md:items-end"
+                    : "md:grid-cols-[1fr_auto] md:items-center"
+                }`}
               >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <p className="font-semibold text-text">{transaction.title}</p>
-                    <p className="text-sm font-semibold text-accent-strong">{formatCurrency(transaction.amount)}</p>
-                    <p className="text-xs text-text-muted">{transaction.transactionDate}</p>
-                  </div>
-                  <p className="mt-1 text-xs text-text-muted">
-                    {categoryNameFor(categories, transaction.categoryId)}
-                    {transaction.notes ? ` - ${transaction.notes}` : ""}
-                  </p>
-                </div>
-                {deleteConfirmationId === transaction.id ? (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex min-h-9 items-center justify-center rounded-md bg-red-300 px-3 text-sm font-semibold text-red-950 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-                      disabled={pendingAction === `delete-transaction-${transaction.id}`}
-                      onClick={() => handleDeleteTransaction(transaction.id)}
-                    >
-                      Delete transaction
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-                      onClick={() => setDeleteConfirmationId(null)}
-                    >
-                      Cancel
-                    </button>
+                {editingTransaction?.id === transaction.id ? (
+                  <div className="mode-transition">
+                    <TransactionFormFields
+                      categories={categories}
+                      form={form}
+                      setForm={setForm}
+                      labels={{
+                        title: "Edit transaction title",
+                        amount: "Edit amount",
+                        transactionDate: "Edit transaction date",
+                        category: "Edit category",
+                        notes: "Edit notes"
+                      }}
+                    />
+                    <TransactionFormActions
+                      saveLabel="Save transaction changes"
+                      isSaving={pendingAction === `update-${transaction.id}`}
+                      onSave={handleSaveTransaction}
+                      onCancel={() => {
+                        setEditingTransaction(null);
+                        setForm(createEmptyTransactionForm());
+                      }}
+                    />
                   </div>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-                      aria-label={`Edit ${transaction.title}`}
-                      onClick={() => startEdit(transaction)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex min-h-9 items-center justify-center rounded-md border border-red-400/30 px-3 text-sm font-medium text-red-200 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-                      aria-label={`Delete ${transaction.title}`}
-                      onClick={() => setDeleteConfirmationId(transaction.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <>
+                    <div className="mode-transition min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <p className="font-semibold text-text">{transaction.title}</p>
+                        <p className="text-sm font-semibold text-accent-strong">{formatCurrency(transaction.amount)}</p>
+                        <p className="text-xs text-text-muted">{transaction.transactionDate}</p>
+                      </div>
+                      <p className="mt-1 text-xs text-text-muted">
+                        {categoryNameFor(categories, transaction.categoryId)}
+                        {transaction.notes ? ` - ${transaction.notes}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+                        aria-label={`Edit ${transaction.title}`}
+                        onClick={() => startEdit(transaction)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-9 items-center justify-center rounded-md border border-red-400/30 px-3 text-sm font-medium text-red-200 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+                        aria-label={`Delete ${transaction.title}`}
+                        onClick={() => setDeleteConfirmationId(transaction.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
                 )}
+                {deleteConfirmationId === transaction.id ? (
+                  <DeleteConfirmationOverlay
+                    message={`Are you sure you want to delete transaction ${transaction.title}?`}
+                    confirmLabel={`Yes, delete ${transaction.title}`}
+                    isDeleting={pendingAction === `delete-transaction-${transaction.id}`}
+                    onConfirm={() => handleDeleteTransaction(transaction.id)}
+                    onCancel={() => setDeleteConfirmationId(null)}
+                  />
+                ) : null}
               </li>
             ))}
           </ul>
         )}
       </div>
     </section>
+  );
+}
+
+function TransactionFormFields({
+  categories,
+  form,
+  setForm,
+  labels
+}: {
+  categories: Category[];
+  form: TransactionFormState;
+  setForm: Dispatch<SetStateAction<TransactionFormState>>;
+  labels: {
+    title: string;
+    amount: string;
+    transactionDate: string;
+    category: string;
+    notes: string;
+  };
+}) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <label className="grid gap-2 text-sm font-medium text-text">
+        {labels.title}
+        <input
+          className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+          value={form.title}
+          maxLength={120}
+          onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+          placeholder="Lunch"
+        />
+      </label>
+      <label className="grid gap-2 text-sm font-medium text-text">
+        {labels.amount}
+        <input
+          className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+          inputMode="decimal"
+          value={form.amount}
+          onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
+          placeholder="12.50"
+        />
+      </label>
+      <label className="grid gap-2 text-sm font-medium text-text">
+        {labels.transactionDate}
+        <input
+          className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+          type="date"
+          value={form.transactionDate}
+          onChange={(event) => setForm((current) => ({ ...current, transactionDate: event.target.value }))}
+        />
+      </label>
+      <label className="grid gap-2 text-sm font-medium text-text">
+        {labels.category}
+        <select
+          className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+          value={form.categoryId}
+          onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
+        >
+          <option value="">Choose category</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="grid gap-2 text-sm font-medium text-text">
+        Currency
+        <select
+          className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+          value={form.currency}
+          onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value as "USD" }))}
+        >
+          <option value="USD">USD</option>
+        </select>
+      </label>
+      <label className="grid gap-2 text-sm font-medium text-text md:col-span-2">
+        {labels.notes}
+        <textarea
+          className="min-h-20 rounded-md border border-white/10 bg-surface-muted px-3 py-2 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+          value={form.notes}
+          maxLength={500}
+          onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+          placeholder="Optional"
+        />
+      </label>
+    </div>
+  );
+}
+
+function TransactionFormActions({
+  saveLabel,
+  isSaving,
+  onSave,
+  onCancel
+}: {
+  saveLabel: string;
+  isSaving: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      <button
+        type="button"
+        className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+        disabled={isSaving}
+        onClick={onSave}
+      >
+        {saveLabel}
+      </button>
+      <button
+        type="button"
+        className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/10 px-4 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+        onClick={onCancel}
+      >
+        Cancel
+      </button>
+    </div>
   );
 }
 
@@ -765,12 +842,12 @@ function CategoryManager({ categoryClient }: { categoryClient: CategoryClient })
             {categories.map((category) => (
               <li
                 key={category.id}
-                className={`flex flex-col gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 sm:flex-row ${
+                className={`mode-transition relative flex flex-col gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 transition-all duration-200 ease-out motion-reduce:transition-none sm:flex-row ${
                   editingId === category.id ? "sm:items-end" : "sm:items-center"
                 } sm:justify-between`}
               >
                 {editingId === category.id ? (
-                  <label className="grid flex-1 gap-2 text-sm font-medium text-text">
+                  <label className="mode-transition grid flex-1 gap-2 text-sm font-medium text-text">
                     Rename category
                     <input
                       className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
@@ -780,7 +857,7 @@ function CategoryManager({ categoryClient }: { categoryClient: CategoryClient })
                     />
                   </label>
                 ) : (
-                  <div>
+                  <div className="mode-transition">
                     <p className="font-semibold text-text">{category.name}</p>
                     <p className="text-xs text-text-muted">Ready for transactions</p>
                   </div>
@@ -852,26 +929,13 @@ function CategoryRowActions({
 }) {
   if (isConfirmingDelete) {
     return (
-      <div className="flex flex-col gap-2 rounded-md border border-red-400/30 bg-red-500/10 p-3 sm:flex-row sm:items-center">
-        <p className="text-sm font-medium text-red-100">Are you sure you want to delete category {category.name}?</p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="inline-flex min-h-9 items-center justify-center rounded-md bg-red-300 px-3 text-sm font-semibold text-red-950 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-            disabled={isDeleting}
-            onClick={onConfirmDelete}
-          >
-            {isDeleting ? "Deleting" : `Yes, delete ${category.name}`}
-          </button>
-          <button
-            type="button"
-            className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-            onClick={onCancelDelete}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
+      <DeleteConfirmationOverlay
+        message={`Are you sure you want to delete category ${category.name}?`}
+        confirmLabel={`Yes, delete ${category.name}`}
+        isDeleting={isDeleting}
+        onConfirm={onConfirmDelete}
+        onCancel={onCancelDelete}
+      />
     );
   }
 
@@ -894,6 +958,46 @@ function CategoryRowActions({
         Delete
       </button>
     </>
+  );
+}
+
+function DeleteConfirmationOverlay({
+  message,
+  confirmLabel,
+  isDeleting,
+  onConfirm,
+  onCancel
+}: {
+  message: string;
+  confirmLabel: string;
+  isDeleting: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      className="absolute inset-0 z-10 flex flex-col justify-center gap-2 rounded-md border border-red-400/30 bg-surface/95 px-4 py-3 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-end"
+      data-delete-confirmation-overlay
+    >
+      <p className="min-w-0 text-sm font-medium text-red-100 sm:mr-auto">{message}</p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="inline-flex min-h-9 items-center justify-center rounded-md bg-red-300 px-3 text-sm font-semibold text-red-950 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+          disabled={isDeleting}
+          onClick={onConfirm}
+        >
+          {isDeleting ? "Deleting" : confirmLabel}
+        </button>
+        <button
+          type="button"
+          className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
   );
 }
 
