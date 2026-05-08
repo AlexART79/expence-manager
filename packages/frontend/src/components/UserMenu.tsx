@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
 import type { CurrentUser } from "../auth/authClient";
+import { useAvatarFallback } from "./useAvatarFallback";
+import { getInitials } from "./userDisplay";
+import { USER_MENU_COPY, USER_MENU_IMAGE } from "./userMenuConstants";
 
 type UserMenuProps = {
   user: CurrentUser;
@@ -7,12 +9,7 @@ type UserMenuProps = {
 };
 
 export function UserMenu({ user, onLogout }: UserMenuProps) {
-  const [hasAvatarError, setHasAvatarError] = useState(false);
-  const shouldShowAvatar = Boolean(user.avatarUrl && !hasAvatarError);
-
-  useEffect(() => {
-    setHasAvatarError(false);
-  }, [user.avatarUrl]);
+  const { shouldShowAvatar, handleAvatarError } = useAvatarFallback(user.avatarUrl);
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-surface-muted px-3 py-2">
@@ -20,14 +17,14 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         <img
           className="h-9 w-9 rounded-full object-cover"
           src={user.avatarUrl ?? undefined}
-          alt={`${user.displayName} avatar`}
-          referrerPolicy="no-referrer"
-          onError={() => setHasAvatarError(true)}
+          alt={USER_MENU_COPY.avatarAlt(user.displayName)}
+          referrerPolicy={USER_MENU_IMAGE.referrerPolicy}
+          onError={handleAvatarError}
         />
       ) : (
         <div
           className="grid h-9 w-9 place-items-center rounded-full bg-accent text-sm font-bold text-slate-950"
-          aria-label={`${user.displayName} initials`}
+          aria-label={USER_MENU_COPY.initialsLabel(user.displayName)}
         >
           {getInitials(user.displayName)}
         </div>
@@ -41,17 +38,8 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
         onClick={onLogout}
       >
-        Log out
+        {USER_MENU_COPY.logout}
       </button>
     </div>
   );
-}
-
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
 }

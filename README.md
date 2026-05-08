@@ -11,7 +11,7 @@ Local MVP scaffold for a multi-user personal expense tracker. The full product d
 ## Package Layout
 
 - `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, category and transaction APIs, and backend tests.
-- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category and transaction management UI, API client, logger wrapper, and frontend tests.
+- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category and transaction management UI, feature hooks, constants modules, typed API clients, logger wrapper, and frontend tests.
 
 ## Local Setup
 

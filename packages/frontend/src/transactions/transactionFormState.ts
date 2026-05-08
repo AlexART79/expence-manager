@@ -1,4 +1,19 @@
 import type { Transaction, TransactionFilters, TransactionInput } from "./transactionClient";
+import {
+  TRANSACTION_CURRENCY,
+  TRANSACTION_LIMITS,
+  TRANSACTION_MESSAGES,
+  TRANSACTION_REGEX
+} from "./transactionConstants";
+import type { TransactionCurrency } from "./transactionConstants";
+
+export type TransactionFormLabels = {
+  title: string;
+  amount: string;
+  transactionDate: string;
+  category: string;
+  notes: string;
+};
 
 export type TransactionFormState = {
   title: string;
@@ -6,7 +21,7 @@ export type TransactionFormState = {
   transactionDate: string;
   categoryId: string;
   notes: string;
-  currency: "USD";
+  currency: TransactionCurrency;
 };
 
 export type TransactionFilterFormState = {
@@ -25,7 +40,7 @@ export function createEmptyTransactionForm(): TransactionFormState {
     transactionDate: "",
     categoryId: "",
     notes: "",
-    currency: "USD"
+    currency: TRANSACTION_CURRENCY
   };
 }
 
@@ -42,27 +57,27 @@ export function createTransactionFormFromTransaction(transaction: Transaction): 
 
 export function validateTransactionForm(form: TransactionFormState) {
   if (!form.title.trim()) {
-    return "Transaction title is required";
+    return TRANSACTION_MESSAGES.titleRequired;
   }
 
-  if (!/^\d+(\.\d{1,2})?$/.test(form.amount.trim()) || Number(form.amount) <= 0) {
-    return "Amount must be greater than 0";
+  if (!TRANSACTION_REGEX.amount.test(form.amount.trim()) || Number(form.amount) <= 0) {
+    return TRANSACTION_MESSAGES.amountInvalid;
   }
 
   if (!form.transactionDate) {
-    return "Transaction date is required";
+    return TRANSACTION_MESSAGES.dateRequired;
   }
 
   if (!form.categoryId) {
-    return "Category is required";
+    return TRANSACTION_MESSAGES.categoryRequired;
   }
 
-  if (form.currency !== "USD") {
-    return "Currency must be USD";
+  if (form.currency !== TRANSACTION_CURRENCY) {
+    return TRANSACTION_MESSAGES.currencyInvalid;
   }
 
-  if (form.notes.length > 500) {
-    return "Notes are too long";
+  if (form.notes.length > TRANSACTION_LIMITS.notesMaxLength) {
+    return TRANSACTION_MESSAGES.notesTooLong;
   }
 
   return null;

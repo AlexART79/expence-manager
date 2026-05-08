@@ -1,4 +1,5 @@
 import type { Category } from "../categories/categoryClient";
+import { TRANSACTION_COPY } from "./transactionConstants";
 import type { TransactionFilterFormState } from "./transactionFormState";
 import { hasActiveTransactionFilters } from "./transactionFormState";
 
@@ -21,22 +22,22 @@ export function TransactionFiltersForm({
   return (
     <div className="mt-5 grid gap-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
       <label className="grid gap-2 text-sm font-medium text-text">
-        Search transactions
+        {TRANSACTION_COPY.filterSearchLabel}
         <input
           className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           value={filters.search}
           onChange={(event) => onFilterChange("search", event.target.value)}
-          placeholder="Title or notes"
+          placeholder={TRANSACTION_COPY.filterSearchPlaceholder}
         />
       </label>
       <label className="grid gap-2 text-sm font-medium text-text">
-        Filter by category
+        {TRANSACTION_COPY.filterCategoryLabel}
         <select
           className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
           value={filters.categoryId}
           onChange={(event) => onFilterChange("categoryId", event.target.value)}
         >
-          <option value="">All categories</option>
+          <option value="">{TRANSACTION_COPY.allCategories}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -45,7 +46,7 @@ export function TransactionFiltersForm({
         </select>
       </label>
       <label className="grid gap-2 text-sm font-medium text-text">
-        From date
+        {TRANSACTION_COPY.dateFromLabel}
         <input
           className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
           type="date"
@@ -54,7 +55,7 @@ export function TransactionFiltersForm({
         />
       </label>
       <label className="grid gap-2 text-sm font-medium text-text">
-        To date
+        {TRANSACTION_COPY.dateToLabel}
         <input
           className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
           type="date"
@@ -63,23 +64,23 @@ export function TransactionFiltersForm({
         />
       </label>
       <label className="grid gap-2 text-sm font-medium text-text">
-        Minimum amount
+        {TRANSACTION_COPY.amountMinLabel}
         <input
           className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           inputMode="decimal"
           value={filters.amountMin}
           onChange={(event) => onFilterChange("amountMin", event.target.value)}
-          placeholder="0.00"
+          placeholder={TRANSACTION_COPY.amountMinPlaceholder}
         />
       </label>
       <label className="grid gap-2 text-sm font-medium text-text">
-        Maximum amount
+        {TRANSACTION_COPY.amountMaxLabel}
         <input
           className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           inputMode="decimal"
           value={filters.amountMax}
           onChange={(event) => onFilterChange("amountMax", event.target.value)}
-          placeholder="999.00"
+          placeholder={TRANSACTION_COPY.amountMaxPlaceholder}
         />
       </label>
       <button
@@ -88,7 +89,7 @@ export function TransactionFiltersForm({
         disabled={isFiltering || !hasActiveTransactionFilters(filters)}
         onClick={onClear}
       >
-        Clear filters
+        {TRANSACTION_COPY.clearFilters}
       </button>
     </div>
   );

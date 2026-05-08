@@ -1,5 +1,7 @@
-import type { AuthClient, AuthProvider } from "./authClient";
 import { ThemeButton } from "../components/ThemeButton";
+import type { AuthClient } from "./authClient";
+import { AUTH_PROVIDERS, LOGIN_COPY } from "./authUiConstants";
+import { ProviderButton } from "./ProviderButton";
 
 type LoginPageProps = {
   authClient: AuthClient;
@@ -16,50 +18,20 @@ export function LoginPage({ authClient, isDark, setIsDark }: LoginPageProps) {
       <section className="relative w-full max-w-md rounded-lg border border-white/10 bg-surface-muted/95 p-7 shadow-2xl shadow-black/30 backdrop-blur sm:p-8">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-strong">Secure workspace</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-normal text-text">Sign in to Expense Tracker</h1>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-strong">{LOGIN_COPY.eyebrow}</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-normal text-text">{LOGIN_COPY.title}</h1>
             <p className="mt-3 text-sm leading-6 text-text-muted">
-              Use your existing account to open your personal finance dashboard.
+              {LOGIN_COPY.description}
             </p>
           </div>
           <ThemeButton isDark={isDark} setIsDark={setIsDark} />
         </div>
 
         <div className="grid gap-3">
-          <ProviderButton provider="google" href={authClient.getProviderLoginUrl("google")} />
-          <ProviderButton provider="github" href={authClient.getProviderLoginUrl("github")} />
+          <ProviderButton provider={AUTH_PROVIDERS.google} href={authClient.getProviderLoginUrl(AUTH_PROVIDERS.google)} />
+          <ProviderButton provider={AUTH_PROVIDERS.github} href={authClient.getProviderLoginUrl(AUTH_PROVIDERS.github)} />
         </div>
       </section>
     </main>
-  );
-}
-
-function ProviderButton({ provider, href }: { provider: AuthProvider; href: string }) {
-  const isGoogle = provider === "google";
-  const label = isGoogle ? "Continue with Google" : "Continue with GitHub";
-
-  return (
-    <a
-      className={`inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-md px-4 text-sm font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950 ${
-        isGoogle
-          ? "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
-          : "border border-slate-950 bg-slate-950 text-white hover:bg-black"
-      }`}
-      href={href}
-    >
-      <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-sm font-bold">
-        {isGoogle ? (
-          <span aria-hidden="true" className="font-bold text-[#4285f4]">
-            G
-          </span>
-        ) : (
-          <span aria-hidden="true" className="text-[10px] font-bold text-slate-950">
-            GH
-          </span>
-        )}
-      </span>
-      <span className="sr-only">{isGoogle ? "Google" : "GitHub"}</span>
-      {label}
-    </a>
   );
 }

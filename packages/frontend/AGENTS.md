@@ -6,23 +6,28 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 
 - Stack: React, Vite, TypeScript, Tailwind, Vitest, React Testing Library.
 - Keep API access inside typed clients under `src/auth`, `src/categories`, `src/transactions`, or `src/lib`.
-- Keep UI state close to the feature manager that owns it.
+- Keep async feature state in focused React hooks next to the feature that owns it.
 - Do not add Docker, CI, deployment, or infrastructure files from frontend work unless the user explicitly asks.
 
 ## Current UI Boundaries
 
-- `src/App.tsx`: auth bootstrap, browser route guard, theme state, and top-level screen selection.
+- `src/App.tsx`: top-level screen selection and composition.
+- `src/app`: route constants and browser route helpers/hooks.
 - `src/auth/LoginPage.tsx`: auth entry page and provider links.
 - `src/auth/AuthErrorScreen.tsx`: session-check failure UI.
+- `src/auth/useAuthSession.ts`: auth bootstrap, session error state, current user state, and logout behavior.
 - `src/home/HomePage.tsx`: authenticated dashboard composition.
-- `src/categories/CategoryManager.tsx`: category loading, create, rename, delete, pending state, and errors.
+- `src/categories/CategoryManager.tsx`: category management composition.
+- `src/categories/useCategoryManager.ts`: category loading, create, rename, delete, pending state, and errors.
 - `src/categories/CategoryCreateForm.tsx`: category create controls only.
 - `src/categories/CategoryRow.tsx`: single category row display, inline rename, inline delete confirmation.
-- `src/transactions/TransactionManager.tsx`: transaction loading, filters, create, edit, delete, pending state, and errors.
+- `src/transactions/TransactionManager.tsx`: transaction management composition.
+- `src/transactions/useTransactionManager.ts`: transaction loading, filters, create, edit, delete, pending state, errors, and live-filter request ordering.
 - `src/transactions/TransactionFiltersForm.tsx`: transaction filter controls only.
 - `src/transactions/TransactionForm.tsx`: reusable create/edit transaction fields and actions.
 - `src/transactions/TransactionRow.tsx`: single transaction row display, inline edit, inline delete confirmation.
 - `src/transactions/transactionFormState.ts`: transaction form/filter factories, validation, API input mapping, and sorting.
+- `src/transactions/transactionConstants.ts`: transaction labels, validation limits, supported currency, messages, and pending action keys.
 - `src/components`: cross-feature UI and shell primitives, such as theme, loading, header, user menu, and delete confirmation.
 - `src/components/UserMenu.tsx`: current-user identity, avatar image handling, initials fallback, and logout action.
 
@@ -34,6 +39,8 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 - Put shared visual primitives in `src/components` only after at least two features need them or the abstraction is obvious.
 - Put raw HTTP details in client modules, not inside React components.
 - Keep non-visual form helpers in a separate module when they are reused by create/edit flows or are worth testing directly.
+- Use one exported React component per component file for feature UI. Put sibling row/action/summary/form subcomponents in separate files in the same feature folder.
+- Put feature constants in `*Constants.ts` modules for routes, messages, validation limits, supported currencies, action keys, provider metadata, and shared labels. Keep one-off Tailwind class strings inline unless the class set is reused.
 
 ## Interaction Contracts
 
@@ -51,9 +58,11 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 ## State And Data Flow
 
 - `App` injects `authClient`, `categoryClient`, and `transactionClient` for tests.
-- Feature managers call clients and pass values/callbacks down to forms and rows.
+- Feature managers call feature hooks and pass values/callbacks down to forms, rows, and lists.
+- Feature hooks call typed clients and own effects, async requests, pending/error state, and action handlers.
 - Forms and rows should stay mostly presentational. They may report events upward, but should not call API clients directly.
 - Keep backend validation authoritative. Client validation is for fast feedback and should match the API shape where practical.
+- Preserve transaction live-filter request ordering by keeping the request-id guard in `useTransactionManager` or an equivalent hook if it is split later.
 
 ## Testing And Verification
 
