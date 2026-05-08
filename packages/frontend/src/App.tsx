@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { authClient as defaultAuthClient } from "./auth/authClient";
 import type { AuthClient, AuthProvider, CurrentUser } from "./auth/authClient";
@@ -223,6 +223,15 @@ type TransactionFormState = {
   currency: "USD";
 };
 
+type TransactionFilterFormState = {
+  search: string;
+  categoryId: string;
+  dateFrom: string;
+  dateTo: string;
+  amountMin: string;
+  amountMax: string;
+};
+
 function TransactionManager({
   categoryClient,
   transactionClient
@@ -232,14 +241,7 @@ function TransactionManager({
 }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [filters, setFilters] = useState({
-    search: "",
-    categoryId: "",
-    dateFrom: "",
-    dateTo: "",
-    amountMin: "",
-    amountMax: ""
-  });
+  const [filters, setFilters] = useState<TransactionFilterFormState>(createEmptyTransactionFilters());
   const [form, setForm] = useState<TransactionFormState>(createEmptyTransactionForm());
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
@@ -247,6 +249,7 @@ function TransactionManager({
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const filterRequestId = useRef(0);
 
   useEffect(() => {
     let isCurrent = true;
@@ -276,17 +279,41 @@ function TransactionManager({
     };
   }, [categoryClient, transactionClient]);
 
-  async function applyFilters() {
+  async function runTransactionFilters(nextFilters: TransactionFilterFormState) {
+    const requestId = filterRequestId.current + 1;
+    filterRequestId.current = requestId;
     setPendingAction("filter");
     try {
-      const loadedTransactions = await transactionClient.listTransactions(toTransactionFilters(filters));
-      setTransactions(loadedTransactions);
-      setError(null);
+      const loadedTransactions = await transactionClient.listTransactions(toTransactionFilters(nextFilters));
+      if (filterRequestId.current === requestId) {
+        setTransactions(loadedTransactions);
+        setError(null);
+      }
     } catch (filterError) {
-      setError(filterError instanceof Error ? filterError.message : "Could not filter transactions");
+      if (filterRequestId.current === requestId) {
+        setError(filterError instanceof Error ? filterError.message : "Could not filter transactions");
+      }
     } finally {
-      setPendingAction(null);
+      if (filterRequestId.current === requestId) {
+        setPendingAction(null);
+      }
     }
+  }
+
+  function updateFilters(nextFilters: TransactionFilterFormState) {
+    setFilters(nextFilters);
+    void runTransactionFilters(nextFilters);
+  }
+
+  function updateFilter<Key extends keyof TransactionFilterFormState>(
+    key: Key,
+    value: TransactionFilterFormState[Key]
+  ) {
+    updateFilters({ ...filters, [key]: value });
+  }
+
+  function clearFilters() {
+    updateFilters(createEmptyTransactionFilters());
   }
 
   async function handleSaveTransaction() {
@@ -377,7 +404,7 @@ function TransactionManager({
           <input
             className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
             value={filters.search}
-            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+            onChange={(event) => updateFilter("search", event.target.value)}
             placeholder="Title or notes"
           />
         </label>
@@ -386,7 +413,7 @@ function TransactionManager({
           <select
             className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
             value={filters.categoryId}
-            onChange={(event) => setFilters((current) => ({ ...current, categoryId: event.target.value }))}
+            onChange={(event) => updateFilter("categoryId", event.target.value)}
           >
             <option value="">All categories</option>
             {categories.map((category) => (
@@ -402,7 +429,7 @@ function TransactionManager({
             className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
             type="date"
             value={filters.dateFrom}
-            onChange={(event) => setFilters((current) => ({ ...current, dateFrom: event.target.value }))}
+            onChange={(event) => updateFilter("dateFrom", event.target.value)}
           />
         </label>
         <label className="grid gap-2 text-sm font-medium text-text">
@@ -411,7 +438,7 @@ function TransactionManager({
             className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
             type="date"
             value={filters.dateTo}
-            onChange={(event) => setFilters((current) => ({ ...current, dateTo: event.target.value }))}
+            onChange={(event) => updateFilter("dateTo", event.target.value)}
           />
         </label>
         <label className="grid gap-2 text-sm font-medium text-text">
@@ -420,7 +447,7 @@ function TransactionManager({
             className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
             inputMode="decimal"
             value={filters.amountMin}
-            onChange={(event) => setFilters((current) => ({ ...current, amountMin: event.target.value }))}
+            onChange={(event) => updateFilter("amountMin", event.target.value)}
             placeholder="0.00"
           />
         </label>
@@ -430,17 +457,17 @@ function TransactionManager({
             className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
             inputMode="decimal"
             value={filters.amountMax}
-            onChange={(event) => setFilters((current) => ({ ...current, amountMax: event.target.value }))}
+            onChange={(event) => updateFilter("amountMax", event.target.value)}
             placeholder="999.00"
           />
         </label>
         <button
           type="button"
           className="inline-flex min-h-10 items-center justify-center self-end rounded-md border border-white/10 px-4 text-sm font-semibold text-text transition hover:bg-surface focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-          disabled={pendingAction === "filter"}
-          onClick={applyFilters}
+          disabled={pendingAction === "filter" || !hasActiveTransactionFilters(filters)}
+          onClick={clearFilters}
         >
-          Apply filters
+          Clear filters
         </button>
       </div>
 
@@ -1056,32 +1083,51 @@ function toTransactionInput(form: TransactionFormState): TransactionInput {
   };
 }
 
-function toTransactionFilters(filters: {
-  search: string;
-  categoryId: string;
-  dateFrom: string;
-  dateTo: string;
-  amountMin: string;
-  amountMax: string;
-}): TransactionFilters {
+function createEmptyTransactionFilters(): TransactionFilterFormState {
   return {
-    search: filters.search.trim() || undefined,
-    categoryId: filters.categoryId ? Number(filters.categoryId) : undefined,
-    dateFrom: filters.dateFrom || undefined,
-    dateTo: filters.dateTo || undefined,
-    amountMin: filters.amountMin.trim() || undefined,
-    amountMax: filters.amountMax.trim() || undefined
+    search: "",
+    categoryId: "",
+    dateFrom: "",
+    dateTo: "",
+    amountMin: "",
+    amountMax: ""
   };
 }
 
-function hasActiveTransactionFilters(filters: {
-  search: string;
-  categoryId: string;
-  dateFrom: string;
-  dateTo: string;
-  amountMin: string;
-  amountMax: string;
-}) {
+function toTransactionFilters(filters: TransactionFilterFormState): TransactionFilters {
+  const transactionFilters: TransactionFilters = {};
+  const search = filters.search.trim();
+  const amountMin = filters.amountMin.trim();
+  const amountMax = filters.amountMax.trim();
+
+  if (search) {
+    transactionFilters.search = search;
+  }
+
+  if (filters.categoryId) {
+    transactionFilters.categoryId = Number(filters.categoryId);
+  }
+
+  if (filters.dateFrom) {
+    transactionFilters.dateFrom = filters.dateFrom;
+  }
+
+  if (filters.dateTo) {
+    transactionFilters.dateTo = filters.dateTo;
+  }
+
+  if (amountMin) {
+    transactionFilters.amountMin = amountMin;
+  }
+
+  if (amountMax) {
+    transactionFilters.amountMax = amountMax;
+  }
+
+  return transactionFilters;
+}
+
+function hasActiveTransactionFilters(filters: TransactionFilterFormState) {
   return Object.values(filters).some((value) => value.trim().length > 0);
 }
 

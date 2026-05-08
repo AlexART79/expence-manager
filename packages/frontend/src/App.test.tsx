@@ -259,7 +259,7 @@ describe("App shell", () => {
     expect(screen.getByText("$42.35")).toBeInTheDocument();
   });
 
-  it("applies transaction filters through the transaction client", async () => {
+  it("applies transaction filters immediately and clears them", async () => {
     const user = userEvent.setup();
     const listTransactions = vi.fn().mockResolvedValue([]);
 
@@ -273,13 +273,17 @@ describe("App shell", () => {
       />
     );
 
-    await user.type(await screen.findByLabelText("Search transactions"), "apple");
+    const searchInput = await screen.findByLabelText("Search transactions");
+    await waitFor(() => expect(listTransactions).toHaveBeenCalledWith());
+
+    expect(screen.queryByRole("button", { name: "Apply filters" })).not.toBeInTheDocument();
+
+    await user.type(searchInput, "apple");
     await user.selectOptions(screen.getByLabelText("Filter by category"), "2");
     await user.type(screen.getByLabelText("From date"), "2026-05-01");
     await user.type(screen.getByLabelText("To date"), "2026-05-31");
     await user.type(screen.getByLabelText("Minimum amount"), "20");
     await user.type(screen.getByLabelText("Maximum amount"), "50");
-    await user.click(screen.getByRole("button", { name: "Apply filters" }));
 
     await waitFor(() =>
       expect(listTransactions).toHaveBeenLastCalledWith({
@@ -291,6 +295,16 @@ describe("App shell", () => {
         amountMax: "50"
       })
     );
+
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+
+    await waitFor(() => expect(listTransactions).toHaveBeenLastCalledWith({}));
+    expect(searchInput).toHaveValue("");
+    expect(screen.getByLabelText("Filter by category")).toHaveValue("");
+    expect(screen.getByLabelText("From date")).toHaveValue("");
+    expect(screen.getByLabelText("To date")).toHaveValue("");
+    expect(screen.getByLabelText("Minimum amount")).toHaveValue("");
+    expect(screen.getByLabelText("Maximum amount")).toHaveValue("");
   });
 
   it("validates and creates transactions from the authenticated homepage", async () => {
