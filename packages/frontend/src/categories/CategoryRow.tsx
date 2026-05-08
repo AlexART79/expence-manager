@@ -1,5 +1,7 @@
-import { DeleteConfirmationOverlay } from "../components/DeleteConfirmationOverlay";
 import type { Category } from "./categoryClient";
+import { CATEGORY_COPY, CATEGORY_LIMITS, CATEGORY_MESSAGES } from "./categoryConstants";
+import { CategoryRenameActions } from "./CategoryRenameActions";
+import { CategoryRowActions } from "./CategoryRowActions";
 
 export function CategoryRow({
   category,
@@ -38,18 +40,18 @@ export function CategoryRow({
     >
       {isEditing ? (
         <label className="mode-transition grid flex-1 gap-2 text-sm font-medium text-text">
-          Rename category
+          {CATEGORY_COPY.renameLabel}
           <input
             className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
             value={editingName}
-            maxLength={60}
+            maxLength={CATEGORY_LIMITS.nameMaxLength}
             onChange={(event) => onEditingNameChange(event.target.value)}
           />
         </label>
       ) : (
         <div className="mode-transition">
           <p className="font-semibold text-text">{category.name}</p>
-          <p className="text-xs text-text-muted">Ready for transactions</p>
+          <p className="text-xs text-text-muted">{CATEGORY_MESSAGES.readyForTransactions}</p>
         </div>
       )}
 
@@ -69,86 +71,5 @@ export function CategoryRow({
         )}
       </div>
     </li>
-  );
-}
-
-function CategoryRenameActions({
-  isRenaming,
-  onSave,
-  onCancel
-}: {
-  isRenaming: boolean;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <>
-      <button
-        type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md bg-accent px-3 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-        disabled={isRenaming}
-        onClick={onSave}
-      >
-        Save category name
-      </button>
-      <button
-        type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-        onClick={onCancel}
-      >
-        Cancel
-      </button>
-    </>
-  );
-}
-
-function CategoryRowActions({
-  category,
-  isConfirmingDelete,
-  isDeleting,
-  onStartRename,
-  onAskDelete,
-  onCancelDelete,
-  onConfirmDelete
-}: {
-  category: Category;
-  isConfirmingDelete: boolean;
-  isDeleting: boolean;
-  onStartRename: () => void;
-  onAskDelete: () => void;
-  onCancelDelete: () => void;
-  onConfirmDelete: () => void;
-}) {
-  if (isConfirmingDelete) {
-    return (
-      <DeleteConfirmationOverlay
-        message={`Are you sure you want to delete category ${category.name}?`}
-        confirmLabel={`Yes, delete ${category.name}`}
-        isDeleting={isDeleting}
-        onConfirm={onConfirmDelete}
-        onCancel={onCancelDelete}
-      />
-    );
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-        aria-label={`Rename ${category.name}`}
-        onClick={onStartRename}
-      >
-        Rename
-      </button>
-      <button
-        type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-red-400/30 px-3 text-sm font-medium text-red-200 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
-        aria-label={`Delete ${category.name}`}
-        onClick={onAskDelete}
-      >
-        Delete
-      </button>
-    </>
   );
 }

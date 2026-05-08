@@ -1,3 +1,5 @@
+import { CATEGORY_COPY, CATEGORY_LIMITS } from "./categoryConstants";
+
 export function CategoryCreateForm({
   newName,
   isCreating,
@@ -12,13 +14,13 @@ export function CategoryCreateForm({
   return (
     <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
       <label className="grid gap-2 text-sm font-medium text-text">
-        Category name
+        {CATEGORY_COPY.createLabel}
         <input
           className="min-h-11 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
           value={newName}
-          maxLength={60}
+          maxLength={CATEGORY_LIMITS.nameMaxLength}
           onChange={(event) => onNameChange(event.target.value)}
-          placeholder="Groceries"
+          placeholder={CATEGORY_COPY.createPlaceholder}
         />
       </label>
       <button
@@ -27,7 +29,7 @@ export function CategoryCreateForm({
         disabled={isCreating}
         onClick={onCreate}
       >
-        {isCreating ? "Adding" : "Add category"}
+        {isCreating ? CATEGORY_COPY.adding : CATEGORY_COPY.addCategory}
       </button>
     </div>
   );

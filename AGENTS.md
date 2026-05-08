@@ -56,6 +56,9 @@ This file gives coding agents general and stack-specific engineering conventions
 - Keep theme behavior explicit. If an app supports multiple themes, define tokens/classes so screens work correctly in each theme.
 - Keep authentication state refresh-safe when the app has browser authentication.
 - Keep WebSocket connection state visible or debuggable when real-time behavior affects the user experience.
+- Prefer one exported React component per component file. Move nested components into their own files when they grow beyond a tiny local fragment.
+- Keep component files mostly presentational: prop types, rendering, and event wiring. Move reusable helpers, async state, data loading, and formatting into hooks or non-component modules.
+- Use named constants for logic literals such as routes, event names, validation limits, supported currencies, action keys, provider metadata, and user-facing messages. One-off Tailwind utility strings may stay inline for readability.
 
 ## Backend Rules
 
