@@ -10,7 +10,13 @@
   --color-accent: 20 184 166;
   --color-accent-strong: 13 148 136;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 .dark {
@@ -24,6 +30,56 @@
 
 body {
   margin: 0;
+}
+
+.field-control {
+  color: rgb(var(--color-text));
+}
+
+.field-control--placeholder {
+  color: rgb(var(--color-text-muted) / 0.52);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--color-text-muted) / 0.52) !important;
+}
+
+.field-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 7.5L10 12L14.5 7.5' stroke='%23475569' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 0.9rem center;
+  background-repeat: no-repeat;
+  background-size: 1.1rem;
+  padding-right: 2.75rem;
+}
+
+.dark .field-select {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.5 7.5L10 12L14.5 7.5' stroke='%23cbd5e1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.field-select option {
+  background-color: rgb(var(--color-surface-muted));
+  color: rgb(var(--color-text));
+}
+
+.field-date {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 3.75V6.25M14 3.75V6.25M4.25 8.25H15.75M5 5H15C15.5523 5 16 5.44772 16 6V15C16 15.5523 15.5523 16 15 16H5C4.44772 16 4 15.5523 4 15V6C4 5.44772 4.44772 5 5 5Z' stroke='%23475569' stroke-width='1.55' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 0.9rem center;
+  background-repeat: no-repeat;
+  background-size: 1.1rem;
+  color-scheme: light;
+  padding-right: 2.75rem;
+}
+
+.dark .field-date {
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 3.75V6.25M14 3.75V6.25M4.25 8.25H15.75M5 5H15C15.5523 5 16 5.44772 16 6V15C16 15.5523 15.5523 16 15 16H5C4.44772 16 4 15.5523 4 15V6C4 5.44772 4.44772 5 5 5Z' stroke='%23cbd5e1' stroke-width='1.55' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+
+.field-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0;
 }
 
 .mode-transition {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -130,8 +130,63 @@ describe("App shell", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Categories" })).toBeInTheDocument();
+    expect(await screen.findByText("2 active")).toBeInTheDocument();
+    expect(screen.queryByText("Groceries")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Expand categories" }));
+
     expect(await screen.findByText("Groceries")).toBeInTheDocument();
     expect(await screen.findByText("Rent")).toBeInTheDocument();
+  });
+
+  it("collapses the categories block to its summary and expands it again", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([
+            { id: 1, name: "Groceries", createdAt: 123, updatedAt: 123 },
+            { id: 2, name: "Rent", createdAt: 124, updatedAt: 124 }
+          ])
+        })}
+        transactionClient={createTransactionClient({})}
+      />
+    );
+
+    const expandButton = await screen.findByRole("button", { name: "Expand categories" });
+    const categorySection = expandButton.closest("section");
+
+    expect(categorySection).not.toBeNull();
+    expect(screen.getByText("Spending structure")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Categories" })).toBeInTheDocument();
+    expect(await screen.findByText("2 active")).toBeInTheDocument();
+    expect(within(categorySection as HTMLElement).queryByText("Groceries")).not.toBeInTheDocument();
+    expect(within(categorySection as HTMLElement).queryByLabelText("Category name")).not.toBeInTheDocument();
+    expect(expandButton).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(expandButton);
+
+    expect(await within(categorySection as HTMLElement).findByText("Groceries")).toBeInTheDocument();
+    expect(within(categorySection as HTMLElement).getByLabelText("Category name")).toBeInTheDocument();
+    const collapseButton = screen.getByRole("button", { name: "Collapse categories" });
+    expect(collapseButton).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(collapseButton);
+
+    expect(within(categorySection as HTMLElement).queryByText("Groceries")).not.toBeInTheDocument();
+    expect(within(categorySection as HTMLElement).queryByLabelText("Category name")).not.toBeInTheDocument();
+    expect(screen.getByText("Spending structure")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Categories" })).toBeInTheDocument();
+    expect(screen.getByText("2 active")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand categories" })).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(screen.getByRole("button", { name: "Expand categories" }));
+
+    expect(within(categorySection as HTMLElement).getByText("Groceries")).toBeInTheDocument();
+    expect(within(categorySection as HTMLElement).getByLabelText("Category name")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Collapse categories" })).toHaveAttribute("aria-expanded", "true");
   });
 
   it("shows an empty category state after loading", async () => {
@@ -141,6 +196,8 @@ describe("App shell", () => {
         categoryClient={createCategoryClient({ listCategories: vi.fn().mockResolvedValue([]) })}
       />
     );
+
+    await userEvent.click(await screen.findByRole("button", { name: "Expand categories" }));
 
     expect(await screen.findByText("No categories yet")).toBeInTheDocument();
   });
@@ -158,6 +215,8 @@ describe("App shell", () => {
         transactionClient={createTransactionClient({})}
       />
     );
+
+    await user.click(await screen.findByRole("button", { name: "Expand categories" }));
 
     await user.type(await screen.findByLabelText("Category name"), "   ");
     await user.click(screen.getByRole("button", { name: "Add category" }));
@@ -188,6 +247,8 @@ describe("App shell", () => {
         })}
       />
     );
+
+    await user.click(await screen.findByRole("button", { name: "Expand categories" }));
 
     await user.click(await screen.findByRole("button", { name: "Rename Groceries" }));
     expect(screen.getByLabelText("Rename category").closest("li")).toHaveClass("sm:items-end");
@@ -223,6 +284,8 @@ describe("App shell", () => {
         transactionClient={createTransactionClient({})}
       />
     );
+
+    await userEvent.click(await screen.findByRole("button", { name: "Expand categories" }));
 
     expect(await screen.findAllByText("Failed to load categories")).toHaveLength(2);
     expect(screen.getByRole("heading", { name: "Categories" })).toBeInTheDocument();

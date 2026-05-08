@@ -3,6 +3,11 @@ import { TRANSACTION_COPY } from "./transactionConstants";
 import type { TransactionFilterFormState } from "./transactionFormState";
 import { hasActiveTransactionFilters } from "./transactionFormState";
 
+const FILTER_FIELD_CLASS =
+  "field-control min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40";
+const SELECT_FIELD_CLASS = `${FILTER_FIELD_CLASS} field-select`;
+const DATE_FIELD_CLASS = `${FILTER_FIELD_CLASS} field-date`;
+
 export function TransactionFiltersForm({
   categories,
   filters,
@@ -24,7 +29,7 @@ export function TransactionFiltersForm({
       <label className="grid gap-2 text-sm font-medium text-text">
         {TRANSACTION_COPY.filterSearchLabel}
         <input
-          className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+          className={FILTER_FIELD_CLASS}
           value={filters.search}
           onChange={(event) => onFilterChange("search", event.target.value)}
           placeholder={TRANSACTION_COPY.filterSearchPlaceholder}
@@ -33,7 +38,7 @@ export function TransactionFiltersForm({
       <label className="grid gap-2 text-sm font-medium text-text">
         {TRANSACTION_COPY.filterCategoryLabel}
         <select
-          className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+          className={`${SELECT_FIELD_CLASS} ${filters.categoryId ? "" : "field-control--placeholder"}`}
           value={filters.categoryId}
           onChange={(event) => onFilterChange("categoryId", event.target.value)}
         >
@@ -48,7 +53,7 @@ export function TransactionFiltersForm({
       <label className="grid gap-2 text-sm font-medium text-text">
         {TRANSACTION_COPY.dateFromLabel}
         <input
-          className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+          className={`${DATE_FIELD_CLASS} ${filters.dateFrom ? "" : "field-control--placeholder"}`}
           type="date"
           value={filters.dateFrom}
           onChange={(event) => onFilterChange("dateFrom", event.target.value)}
@@ -57,7 +62,7 @@ export function TransactionFiltersForm({
       <label className="grid gap-2 text-sm font-medium text-text">
         {TRANSACTION_COPY.dateToLabel}
         <input
-          className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+          className={`${DATE_FIELD_CLASS} ${filters.dateTo ? "" : "field-control--placeholder"}`}
           type="date"
           value={filters.dateTo}
           onChange={(event) => onFilterChange("dateTo", event.target.value)}
@@ -66,7 +71,7 @@ export function TransactionFiltersForm({
       <label className="grid gap-2 text-sm font-medium text-text">
         {TRANSACTION_COPY.amountMinLabel}
         <input
-          className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+          className={FILTER_FIELD_CLASS}
           inputMode="decimal"
           value={filters.amountMin}
           onChange={(event) => onFilterChange("amountMin", event.target.value)}
@@ -76,7 +81,7 @@ export function TransactionFiltersForm({
       <label className="grid gap-2 text-sm font-medium text-text">
         {TRANSACTION_COPY.amountMaxLabel}
         <input
-          className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+          className={FILTER_FIELD_CLASS}
           inputMode="decimal"
           value={filters.amountMax}
           onChange={(event) => onFilterChange("amountMax", event.target.value)}
