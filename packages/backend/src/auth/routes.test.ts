@@ -1,5 +1,5 @@
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app.js";
 import { createTestDatabase } from "../test/helpers/db.js";
 
@@ -13,6 +13,11 @@ describe("auth routes", () => {
   beforeEach(() => {
     process.env.AUTH_TEST_MODE = "true";
     process.env.FRONTEND_URL = "http://localhost:5173";
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("rejects current-user requests without a session", async () => {
@@ -54,6 +59,48 @@ describe("auth routes", () => {
         displayName: "Google Test User",
         avatarUrl: "https://example.com/google.png"
       }
+    });
+
+    database.sqlite.close();
+  });
+
+  it("exchanges real Google callback codes even when test callbacks are enabled", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ access_token: "google-access-token" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            sub: "real-google-user",
+            email: "real.user@example.com",
+            name: "Real Google User",
+            picture: "https://example.com/real-google.png"
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        )
+      );
+    const database = createTestDatabase();
+    const app = createApp({ database });
+
+    const callback = await request(app).get("/api/auth/google/callback?code=4/real-google-code");
+
+    expect(callback.status).toBe(302);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const me = await request(app).get("/api/auth/me").set("Cookie", getSessionCookie(callback));
+    expect(me.status).toBe(200);
+    expect(me.body.user).toMatchObject({
+      provider: "google",
+      email: "real.user@example.com",
+      displayName: "Real Google User",
+      avatarUrl: "https://example.com/real-google.png"
     });
 
     database.sqlite.close();

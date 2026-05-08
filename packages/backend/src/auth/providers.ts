@@ -49,7 +49,7 @@ export function buildProviderStartUrl(provider: AuthProvider, env: AppEnv) {
 }
 
 export async function exchangeProviderCode(provider: AuthProvider, code: string, env: AppEnv): Promise<ProviderUser> {
-  if (env.authTestMode) {
+  if (env.authTestMode && code.startsWith("test-")) {
     return getTestProviderUser(provider, code);
   }
 
