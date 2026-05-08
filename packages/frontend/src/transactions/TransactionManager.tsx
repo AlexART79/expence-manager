@@ -9,12 +9,14 @@ import { useTransactionManager } from "./useTransactionManager";
 
 export function TransactionManager({
   categoryClient,
-  transactionClient
+  transactionClient,
+  onTransactionsChanged
 }: {
   categoryClient: CategoryClient;
   transactionClient: TransactionClient;
+  onTransactionsChanged?: () => void;
 }) {
-  const manager = useTransactionManager(categoryClient, transactionClient);
+  const manager = useTransactionManager(categoryClient, transactionClient, onTransactionsChanged);
 
   return (
     <section className="rounded-lg border border-white/10 bg-surface-muted p-5 shadow-xl shadow-black/10 sm:p-6">

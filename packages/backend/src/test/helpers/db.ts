@@ -58,6 +58,19 @@ export function createTestDatabase() {
   database.db.run(sql`create index transactions_category_idx on transactions (category_id)`);
   database.db.run(sql`create index transactions_date_idx on transactions (transaction_date)`);
   database.db.run(sql`create index transactions_user_date_idx on transactions (user_id, transaction_date)`);
+  database.db.run(sql`
+    create table monthly_budgets (
+      id integer primary key autoincrement,
+      user_id integer not null references users(id) on delete cascade,
+      month text not null,
+      amount_cents integer not null,
+      currency text not null,
+      created_at integer not null,
+      updated_at integer not null
+    )
+  `);
+  database.db.run(sql`create index monthly_budgets_user_idx on monthly_budgets (user_id)`);
+  database.db.run(sql`create unique index monthly_budgets_user_month_idx on monthly_budgets (user_id, month)`);
 
   return database;
 }

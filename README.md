@@ -10,8 +10,8 @@ Local MVP scaffold for a multi-user personal expense tracker. The full product d
 
 ## Package Layout
 
-- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, category and transaction APIs, and backend tests.
-- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category and transaction management UI, feature hooks, constants modules, typed API clients, logger wrapper, and frontend tests.
+- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, category, transaction, and budget APIs, and backend tests.
+- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category, transaction, and monthly budget dashboard UI, feature hooks, constants modules, typed API clients, logger wrapper, and frontend tests.
 
 ## Local Setup
 
@@ -115,9 +115,46 @@ Transaction endpoints:
 - `PATCH /api/transactions/:transactionId` with the same body shape as create.
 - `DELETE /api/transactions/:transactionId`
 
+## Monthly Budgets
+
+Signed-in users can set one overall budget per month and view a selected-month dashboard. Month values use `YYYY-MM`, amounts are accepted by the API and UI as decimal dollars, and persistence stores integer cents. The MVP currency is explicit and limited to `USD`.
+
+Budget endpoints:
+
+- `GET /api/budgets/:month`
+- `PUT /api/budgets/:month` with:
+
+```json
+{
+  "amount": "500.00",
+  "currency": "USD"
+}
+```
+
+- `GET /api/budgets/:month/summary`
+
+The summary response includes selected-month spending totals even when no budget is set. In the no-budget state, `budget` is `null`, and `remaining`, `remainingCents`, and `usagePercentage` are also `null`.
+
+Example summary:
+
+```json
+{
+  "summary": {
+    "month": "2026-05",
+    "budget": null,
+    "totalSpent": "125.50",
+    "totalSpentCents": 12550,
+    "remaining": null,
+    "remainingCents": null,
+    "usagePercentage": null,
+    "currency": "USD"
+  }
+}
+```
+
 For tests and local smoke checks without real provider calls, set `AUTH_TEST_MODE=true` and visit:
 
 - `http://localhost:3000/api/auth/google/callback?code=test-google`
 - `http://localhost:3000/api/auth/github/callback?code=test-github`
 
-Budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.
+WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.

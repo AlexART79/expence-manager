@@ -50,6 +50,26 @@ describe("ApiClient", () => {
     });
   });
 
+  it("puts JSON with credentials", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ saved: true })
+    });
+    const client = new ApiClient("http://localhost:3000", fetcher);
+
+    await client.put("/api/budgets/2026-05", { amount: "500.00", currency: "USD" });
+
+    expect(fetcher).toHaveBeenCalledWith("http://localhost:3000/api/budgets/2026-05", {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ amount: "500.00", currency: "USD" })
+    });
+  });
+
   it("keeps the native fetch window binding when using the default fetcher", async () => {
     const originalFetch = globalThis.fetch;
     const fetcher = vi.fn(function (this: typeof globalThis) {

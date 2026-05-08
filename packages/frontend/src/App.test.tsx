@@ -1,8 +1,33 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+
+const defaultBudgetClientMock = vi.hoisted(() => ({
+  getBudget: vi.fn(),
+  setBudget: vi.fn(),
+  getBudgetSummary: vi.fn().mockResolvedValue({
+    month: new Date().toISOString().slice(0, 7),
+    budget: null,
+    totalSpent: "0.00",
+    totalSpentCents: 0,
+    remaining: null,
+    remainingCents: null,
+    usagePercentage: null,
+    currency: "USD"
+  })
+}));
+
+vi.mock("./budgets/budgetClient", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./budgets/budgetClient")>();
+  return {
+    ...actual,
+    budgetClient: defaultBudgetClientMock
+  };
+});
+
 import { App } from "./App";
 import type { AuthClient } from "./auth/authClient";
+import type { BudgetClient } from "./budgets/budgetClient";
 import type { CategoryClient } from "./categories/categoryClient";
 import type { TransactionClient } from "./transactions/transactionClient";
 
@@ -23,6 +48,24 @@ function createCategoryClient(overrides: Partial<CategoryClient>): CategoryClien
     deleteCategory: vi.fn(),
     ...overrides
   } as CategoryClient;
+}
+
+function createBudgetClient(overrides: Partial<BudgetClient>): BudgetClient {
+  return {
+    getBudget: vi.fn(),
+    setBudget: vi.fn(),
+    getBudgetSummary: vi.fn().mockResolvedValue({
+      month: new Date().toISOString().slice(0, 7),
+      budget: null,
+      totalSpent: "0.00",
+      totalSpentCents: 0,
+      remaining: null,
+      remainingCents: null,
+      usagePercentage: null,
+      currency: "USD"
+    }),
+    ...overrides
+  } as BudgetClient;
 }
 
 function createTransactionClient(overrides: Partial<TransactionClient>): TransactionClient {
@@ -322,6 +365,95 @@ describe("App shell", () => {
     expect(screen.getByText("$42.35")).toBeInTheDocument();
   });
 
+  it("renders the monthly budget dashboard with the selected month and no-budget state", async () => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const getBudgetSummary = vi.fn().mockResolvedValue({
+      month: currentMonth,
+      budget: null,
+      totalSpent: "12.50",
+      totalSpentCents: 1250,
+      remaining: null,
+      remainingCents: null,
+      usagePercentage: null,
+      currency: "USD"
+    });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({})}
+        transactionClient={createTransactionClient({})}
+        budgetClient={createBudgetClient({ getBudgetSummary })}
+      />
+    );
+
+    expect(await screen.findByRole("heading", { name: "Monthly budget" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Budget month")).toHaveValue(currentMonth);
+    expect((await screen.findAllByText("No budget set"))[0]).toBeInTheDocument();
+    expect(screen.getByText("$12.50")).toBeInTheDocument();
+    expect(getBudgetSummary).toHaveBeenCalledWith(currentMonth);
+  });
+
+  it("saves a monthly budget from the dashboard", async () => {
+    const user = userEvent.setup();
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const setBudget = vi.fn().mockResolvedValue({
+      id: 1,
+      month: currentMonth,
+      amount: "600.00",
+      amountCents: 60000,
+      currency: "USD",
+      createdAt: 123,
+      updatedAt: 123
+    });
+    const getBudgetSummary = vi
+      .fn()
+      .mockResolvedValueOnce({
+        month: currentMonth,
+        budget: null,
+        totalSpent: "12.50",
+        totalSpentCents: 1250,
+        remaining: null,
+        remainingCents: null,
+        usagePercentage: null,
+        currency: "USD"
+      })
+      .mockResolvedValue({
+        month: currentMonth,
+        budget: {
+          id: 1,
+          month: currentMonth,
+          amount: "600.00",
+          amountCents: 60000,
+          currency: "USD",
+          createdAt: 123,
+          updatedAt: 123
+        },
+        totalSpent: "12.50",
+        totalSpentCents: 1250,
+        remaining: "587.50",
+        remainingCents: 58750,
+        usagePercentage: 2.08,
+        currency: "USD"
+      });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({})}
+        transactionClient={createTransactionClient({})}
+        budgetClient={createBudgetClient({ getBudgetSummary, setBudget })}
+      />
+    );
+
+    await user.type(await screen.findByLabelText("Monthly budget amount"), "600.00");
+    await user.click(screen.getByRole("button", { name: "Save budget" }));
+
+    await waitFor(() => expect(setBudget).toHaveBeenCalledWith(currentMonth, { amount: "600.00", currency: "USD" }));
+    expect(await screen.findByText("$587.50")).toBeInTheDocument();
+    expect(screen.getAllByText("2.08%")[0]).toBeInTheDocument();
+  });
+
   it("applies transaction filters immediately and clears them", async () => {
     const user = userEvent.setup();
     const listTransactions = vi.fn().mockResolvedValue([]);
@@ -418,6 +550,62 @@ describe("App shell", () => {
       })
     );
     expect(await screen.findByText("Lunch")).toBeInTheDocument();
+  });
+
+  it("refreshes the monthly budget summary after creating a transaction", async () => {
+    const user = userEvent.setup();
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const getBudgetSummary = vi.fn().mockResolvedValue({
+      month: currentMonth,
+      budget: {
+        id: 1,
+        month: currentMonth,
+        amount: "100.00",
+        amountCents: 10000,
+        currency: "USD",
+        createdAt: 123,
+        updatedAt: 123
+      },
+      totalSpent: "0.00",
+      totalSpentCents: 0,
+      remaining: "100.00",
+      remainingCents: 10000,
+      usagePercentage: 0,
+      currency: "USD"
+    });
+    const createTransaction = vi.fn().mockResolvedValue({
+      id: 1,
+      categoryId: 1,
+      title: "Lunch",
+      amount: "12.50",
+      amountCents: 1250,
+      transactionDate: "2026-05-08",
+      notes: null,
+      currency: "USD",
+      createdAt: 123,
+      updatedAt: 123
+    });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Food", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({ createTransaction })}
+        budgetClient={createBudgetClient({ getBudgetSummary })}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Add transaction" }));
+    await user.type(screen.getByLabelText("Transaction title"), "Lunch");
+    await user.type(screen.getByLabelText("Amount"), "12.50");
+    await user.type(screen.getByLabelText("Transaction date"), "2026-05-08");
+    await user.selectOptions(screen.getByLabelText("Category"), "1");
+    await user.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    await waitFor(() => expect(createTransaction).toHaveBeenCalled());
+    await waitFor(() => expect(getBudgetSummary).toHaveBeenCalledTimes(2));
   });
 
   it("edits transactions inline without opening the create form above the list", async () => {
