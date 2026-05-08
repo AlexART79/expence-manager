@@ -1,6 +1,6 @@
 # Personal Expense Tracker
 
-Local MVP scaffold for a multi-user personal expense tracker. The full product direction is tracked in `docs/implementation-plan.md`; this branch implements authentication, user identity, and category management.
+Local MVP scaffold for a multi-user personal expense tracker. The full product direction is tracked in `docs/implementation-plan.md`; this branch implements authentication, user identity, category management, and transaction management.
 
 ## Stack
 
@@ -10,8 +10,8 @@ Local MVP scaffold for a multi-user personal expense tracker. The full product d
 
 ## Package Layout
 
-- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, category API, and backend tests.
-- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category management UI, API client, logger wrapper, and frontend tests.
+- `packages/backend`: Express API, database setup, logging, validation, SSO auth, cookie sessions, category and transaction APIs, and backend tests.
+- `packages/frontend`: Vite React app shell, Tailwind theme foundation, auth entry UI, category and transaction management UI, API client, logger wrapper, and frontend tests.
 
 ## Local Setup
 
@@ -87,11 +87,37 @@ Category endpoints:
 - `PATCH /api/categories/:categoryId` with `{ "name": "Food" }`
 - `DELETE /api/categories/:categoryId`
 
-Category deletion policy: deletion is blocked with `409 CONFLICT` when transactions exist for that category. Stage 3 will add the full transactions workflow.
+Category deletion policy: deletion is blocked with `409 CONFLICT` when transactions exist for that category.
+
+## Transactions
+
+Signed-in users can create, list, edit, delete, search, and filter their own expense transactions from the authenticated home screen. Every transaction must belong to one of the signed-in user's categories; foreign category ids and foreign transaction ids return `404 NOT_FOUND`.
+
+Amounts are accepted by the API and UI as decimal dollars, then stored as integer cents. The MVP requires an explicit currency and currently accepts only `USD`. Transaction dates use `YYYY-MM-DD` calendar dates.
+
+Transaction endpoints:
+
+- `GET /api/transactions`
+- `GET /api/transactions?search=apple&categoryId=1&dateFrom=2026-05-01&dateTo=2026-05-31&amountMin=20&amountMax=50`
+- `POST /api/transactions` with:
+
+```json
+{
+  "title": "Groceries",
+  "amount": "42.35",
+  "transactionDate": "2026-05-08",
+  "categoryId": 1,
+  "notes": "Optional note",
+  "currency": "USD"
+}
+```
+
+- `PATCH /api/transactions/:transactionId` with the same body shape as create.
+- `DELETE /api/transactions/:transactionId`
 
 For tests and local smoke checks without real provider calls, set `AUTH_TEST_MODE=true` and visit:
 
 - `http://localhost:3000/api/auth/google/callback?code=test-google`
 - `http://localhost:3000/api/auth/github/callback?code=test-github`
 
-Transactions, budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.
+Budgets, WebSocket alerts, Docker, and CI are intentionally deferred to later implementation stages.

@@ -40,6 +40,24 @@ export function createTestDatabase() {
   `);
   database.db.run(sql`create index categories_user_idx on categories (user_id)`);
   database.db.run(sql`create unique index categories_user_name_idx on categories (user_id, normalized_name)`);
+  database.db.run(sql`
+    create table transactions (
+      id integer primary key autoincrement,
+      user_id integer not null references users(id) on delete cascade,
+      category_id integer not null references categories(id) on delete restrict,
+      title text not null,
+      amount_cents integer not null,
+      transaction_date text not null,
+      notes text,
+      currency text not null,
+      created_at integer not null,
+      updated_at integer not null
+    )
+  `);
+  database.db.run(sql`create index transactions_user_idx on transactions (user_id)`);
+  database.db.run(sql`create index transactions_category_idx on transactions (category_id)`);
+  database.db.run(sql`create index transactions_date_idx on transactions (transaction_date)`);
+  database.db.run(sql`create index transactions_user_date_idx on transactions (user_id, transaction_date)`);
 
   return database;
 }

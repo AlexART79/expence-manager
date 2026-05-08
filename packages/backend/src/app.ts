@@ -4,6 +4,7 @@ import cors from "cors";
 import { pinoHttp } from "pino-http";
 import { createAuthRouter } from "./auth/routes.js";
 import { createCategoryRouter } from "./categories/routes.js";
+import { createTransactionRouter } from "./transactions/routes.js";
 import { database as defaultDatabase } from "./db/connection.js";
 import type { DatabaseHandle } from "./db/connection.js";
 import { createEnv } from "./env.js";
@@ -41,6 +42,7 @@ export function createApp(options: CreateAppOptions = {}) {
   app.use(healthRouter);
   app.use(createAuthRouter(appDatabase, appEnv));
   app.use(createCategoryRouter(appDatabase, appEnv));
+  app.use(createTransactionRouter(appDatabase, appEnv));
   options.configureRoutes?.(app);
   app.use(notFoundHandler);
   app.use(errorHandler);

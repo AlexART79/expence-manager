@@ -3,16 +3,24 @@ import { authClient as defaultAuthClient } from "./auth/authClient";
 import type { AuthClient, AuthProvider, CurrentUser } from "./auth/authClient";
 import { categoryClient as defaultCategoryClient } from "./categories/categoryClient";
 import type { Category, CategoryClient } from "./categories/categoryClient";
+import { transactionClient as defaultTransactionClient } from "./transactions/transactionClient";
+import type { Transaction, TransactionClient, TransactionFilters, TransactionInput } from "./transactions/transactionClient";
 
 type AppProps = {
   isLoading?: boolean;
   authClient?: AuthClient;
   categoryClient?: CategoryClient;
+  transactionClient?: TransactionClient;
 };
 
 type AppRoute = "/" | "/login";
 
-export function App({ isLoading = false, authClient = defaultAuthClient, categoryClient = defaultCategoryClient }: AppProps) {
+export function App({
+  isLoading = false,
+  authClient = defaultAuthClient,
+  categoryClient = defaultCategoryClient,
+  transactionClient = defaultTransactionClient
+}: AppProps) {
   const [isDark, setIsDark] = useState(true);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -98,6 +106,7 @@ export function App({ isLoading = false, authClient = defaultAuthClient, categor
           setIsDark={setIsDark}
           onLogout={handleLogout}
           categoryClient={categoryClient}
+          transactionClient={transactionClient}
         />
       )}
     </div>
@@ -160,13 +169,15 @@ function HomePage({
   isDark,
   setIsDark,
   onLogout,
-  categoryClient
+  categoryClient,
+  transactionClient
 }: {
   user: CurrentUser | null;
   isDark: boolean;
   setIsDark: (value: boolean) => void;
   onLogout: () => void;
   categoryClient: CategoryClient;
+  transactionClient: TransactionClient;
 }) {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,rgb(var(--color-surface)),rgb(var(--color-surface-muted)))]">
@@ -185,6 +196,7 @@ function HomePage({
 
       <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <CategoryManager categoryClient={categoryClient} />
+        <TransactionManager categoryClient={categoryClient} transactionClient={transactionClient} />
 
         <section className="grid gap-4 md:grid-cols-3">
           {["Monthly flow", "Budget guardrails", "Upcoming alerts"].map((label) => (
@@ -198,6 +210,411 @@ function HomePage({
         </section>
       </main>
     </div>
+  );
+}
+
+type TransactionFormState = {
+  title: string;
+  amount: string;
+  transactionDate: string;
+  categoryId: string;
+  notes: string;
+  currency: "USD";
+};
+
+function TransactionManager({
+  categoryClient,
+  transactionClient
+}: {
+  categoryClient: CategoryClient;
+  transactionClient: TransactionClient;
+}) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filters, setFilters] = useState({
+    search: "",
+    categoryId: "",
+    dateFrom: "",
+    dateTo: "",
+    amountMin: "",
+    amountMax: ""
+  });
+  const [form, setForm] = useState<TransactionFormState>(createEmptyTransactionForm());
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    setIsLoadingTransactions(true);
+    Promise.all([categoryClient.listCategories(), transactionClient.listTransactions()])
+      .then(([loadedCategories, loadedTransactions]) => {
+        if (isCurrent) {
+          setCategories(loadedCategories);
+          setTransactions(loadedTransactions);
+          setError(null);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (isCurrent) {
+          setError(loadError instanceof Error ? loadError.message : "Failed to load transactions");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsLoadingTransactions(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [categoryClient, transactionClient]);
+
+  async function applyFilters() {
+    setPendingAction("filter");
+    try {
+      const loadedTransactions = await transactionClient.listTransactions(toTransactionFilters(filters));
+      setTransactions(loadedTransactions);
+      setError(null);
+    } catch (filterError) {
+      setError(filterError instanceof Error ? filterError.message : "Could not filter transactions");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleSaveTransaction() {
+    const validationError = validateTransactionForm(form);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    const input = toTransactionInput(form);
+    const action = editingTransaction ? `update-${editingTransaction.id}` : "create-transaction";
+    setPendingAction(action);
+    try {
+      const saved = editingTransaction
+        ? await transactionClient.updateTransaction(editingTransaction.id, input)
+        : await transactionClient.createTransaction(input);
+
+      setTransactions((current) =>
+        editingTransaction
+          ? current.map((transaction) => (transaction.id === saved.id ? saved : transaction)).sort(sortTransactions)
+          : [saved, ...current].sort(sortTransactions)
+      );
+      setForm(createEmptyTransactionForm());
+      setEditingTransaction(null);
+      setIsFormOpen(false);
+      setError(null);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Could not save transaction");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleDeleteTransaction(transactionId: number) {
+    setPendingAction(`delete-transaction-${transactionId}`);
+    try {
+      await transactionClient.deleteTransaction(transactionId);
+      setTransactions((current) => current.filter((transaction) => transaction.id !== transactionId));
+      setDeleteConfirmationId(null);
+      setError(null);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Could not delete transaction");
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  function startCreate() {
+    setEditingTransaction(null);
+    setForm(createEmptyTransactionForm());
+    setIsFormOpen(true);
+  }
+
+  function startEdit(transaction: Transaction) {
+    setEditingTransaction(transaction);
+    setForm({
+      title: transaction.title,
+      amount: transaction.amount,
+      transactionDate: transaction.transactionDate,
+      categoryId: String(transaction.categoryId),
+      notes: transaction.notes ?? "",
+      currency: transaction.currency
+    });
+    setIsFormOpen(true);
+  }
+
+  return (
+    <section className="rounded-lg border border-white/10 bg-surface-muted p-5 shadow-xl shadow-black/10 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-accent-strong">Spending ledger</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-text">Transactions</h2>
+        </div>
+        <button
+          type="button"
+          className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+          onClick={startCreate}
+        >
+          Add transaction
+        </button>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <label className="grid gap-2 text-sm font-medium text-text">
+          Search transactions
+          <input
+            className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+            value={filters.search}
+            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+            placeholder="Title or notes"
+          />
+        </label>
+        <label className="grid gap-2 text-sm font-medium text-text">
+          Filter by category
+          <select
+            className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+            value={filters.categoryId}
+            onChange={(event) => setFilters((current) => ({ ...current, categoryId: event.target.value }))}
+          >
+            <option value="">All categories</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="grid gap-2 text-sm font-medium text-text">
+          From date
+          <input
+            className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+            type="date"
+            value={filters.dateFrom}
+            onChange={(event) => setFilters((current) => ({ ...current, dateFrom: event.target.value }))}
+          />
+        </label>
+        <label className="grid gap-2 text-sm font-medium text-text">
+          To date
+          <input
+            className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+            type="date"
+            value={filters.dateTo}
+            onChange={(event) => setFilters((current) => ({ ...current, dateTo: event.target.value }))}
+          />
+        </label>
+        <label className="grid gap-2 text-sm font-medium text-text">
+          Minimum amount
+          <input
+            className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+            inputMode="decimal"
+            value={filters.amountMin}
+            onChange={(event) => setFilters((current) => ({ ...current, amountMin: event.target.value }))}
+            placeholder="0.00"
+          />
+        </label>
+        <label className="grid gap-2 text-sm font-medium text-text">
+          Maximum amount
+          <input
+            className="min-h-10 rounded-md border border-white/10 bg-surface px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+            inputMode="decimal"
+            value={filters.amountMax}
+            onChange={(event) => setFilters((current) => ({ ...current, amountMax: event.target.value }))}
+            placeholder="999.00"
+          />
+        </label>
+        <button
+          type="button"
+          className="inline-flex min-h-10 items-center justify-center self-end rounded-md border border-white/10 px-4 text-sm font-semibold text-text transition hover:bg-surface focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+          disabled={pendingAction === "filter"}
+          onClick={applyFilters}
+        >
+          Apply filters
+        </button>
+      </div>
+
+      {isFormOpen ? (
+        <div className="mt-5 rounded-md border border-white/10 bg-surface p-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="grid gap-2 text-sm font-medium text-text">
+              Transaction title
+              <input
+                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+                value={form.title}
+                maxLength={120}
+                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                placeholder="Lunch"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-text">
+              Amount
+              <input
+                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+                inputMode="decimal"
+                value={form.amount}
+                onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
+                placeholder="12.50"
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-text">
+              Transaction date
+              <input
+                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+                type="date"
+                value={form.transactionDate}
+                onChange={(event) => setForm((current) => ({ ...current, transactionDate: event.target.value }))}
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-text">
+              Category
+              <select
+                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+                value={form.categoryId}
+                onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
+              >
+                <option value="">Choose category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-text">
+              Currency
+              <select
+                className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+                value={form.currency}
+                onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value as "USD" }))}
+              >
+                <option value="USD">USD</option>
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-text md:col-span-2">
+              Notes
+              <textarea
+                className="min-h-20 rounded-md border border-white/10 bg-surface-muted px-3 py-2 text-sm text-text outline-none transition placeholder:text-text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"
+                value={form.notes}
+                maxLength={500}
+                onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+                placeholder="Optional"
+              />
+            </label>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+              disabled={pendingAction === "create-transaction" || pendingAction === `update-${editingTransaction?.id}`}
+              onClick={handleSaveTransaction}
+            >
+              Save transaction
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center rounded-md border border-white/10 px-4 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+              onClick={() => {
+                setIsFormOpen(false);
+                setEditingTransaction(null);
+                setForm(createEmptyTransactionForm());
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {error ? (
+        <p className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="mt-5">
+        {isLoadingTransactions ? (
+          <div className="rounded-md border border-white/10 bg-surface px-4 py-5 text-sm text-text-muted" role="status">
+            Loading transactions
+          </div>
+        ) : transactions.length === 0 ? (
+          <div className="rounded-md border border-dashed border-white/15 bg-surface px-4 py-6">
+            <p className="text-sm font-semibold text-text">{hasActiveTransactionFilters(filters) ? "No transactions match" : "No transactions yet"}</p>
+            <p className="mt-1 text-sm text-text-muted">
+              {hasActiveTransactionFilters(filters)
+                ? "Adjust filters to broaden the ledger."
+                : "Add the first expense once categories are ready."}
+            </p>
+          </div>
+        ) : (
+          <ul className="grid gap-2">
+            {transactions.map((transaction) => (
+              <li
+                key={transaction.id}
+                className="grid gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 md:grid-cols-[1fr_auto] md:items-center"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <p className="font-semibold text-text">{transaction.title}</p>
+                    <p className="text-sm font-semibold text-accent-strong">{formatCurrency(transaction.amount)}</p>
+                    <p className="text-xs text-text-muted">{transaction.transactionDate}</p>
+                  </div>
+                  <p className="mt-1 text-xs text-text-muted">
+                    {categoryNameFor(categories, transaction.categoryId)}
+                    {transaction.notes ? ` - ${transaction.notes}` : ""}
+                  </p>
+                </div>
+                {deleteConfirmationId === transaction.id ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex min-h-9 items-center justify-center rounded-md bg-red-300 px-3 text-sm font-semibold text-red-950 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+                      disabled={pendingAction === `delete-transaction-${transaction.id}`}
+                      onClick={() => handleDeleteTransaction(transaction.id)}
+                    >
+                      Delete transaction
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+                      onClick={() => setDeleteConfirmationId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+                      aria-label={`Edit ${transaction.title}`}
+                      onClick={() => startEdit(transaction)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-9 items-center justify-center rounded-md border border-red-400/30 px-3 text-sm font-medium text-red-200 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+                      aria-label={`Delete ${transaction.title}`}
+                      onClick={() => setDeleteConfirmationId(transaction.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -482,6 +899,99 @@ function CategoryRowActions({
 
 function sortCategories(left: Category, right: Category) {
   return left.name.localeCompare(right.name);
+}
+
+function createEmptyTransactionForm(): TransactionFormState {
+  return {
+    title: "",
+    amount: "",
+    transactionDate: "",
+    categoryId: "",
+    notes: "",
+    currency: "USD"
+  };
+}
+
+function validateTransactionForm(form: TransactionFormState) {
+  if (!form.title.trim()) {
+    return "Transaction title is required";
+  }
+
+  if (!/^\d+(\.\d{1,2})?$/.test(form.amount.trim()) || Number(form.amount) <= 0) {
+    return "Amount must be greater than 0";
+  }
+
+  if (!form.transactionDate) {
+    return "Transaction date is required";
+  }
+
+  if (!form.categoryId) {
+    return "Category is required";
+  }
+
+  if (form.currency !== "USD") {
+    return "Currency must be USD";
+  }
+
+  if (form.notes.length > 500) {
+    return "Notes are too long";
+  }
+
+  return null;
+}
+
+function toTransactionInput(form: TransactionFormState): TransactionInput {
+  const notes = form.notes.trim();
+  return {
+    title: form.title.trim(),
+    amount: form.amount.trim(),
+    transactionDate: form.transactionDate,
+    categoryId: Number(form.categoryId),
+    notes: notes.length > 0 ? notes : null,
+    currency: form.currency
+  };
+}
+
+function toTransactionFilters(filters: {
+  search: string;
+  categoryId: string;
+  dateFrom: string;
+  dateTo: string;
+  amountMin: string;
+  amountMax: string;
+}): TransactionFilters {
+  return {
+    search: filters.search.trim() || undefined,
+    categoryId: filters.categoryId ? Number(filters.categoryId) : undefined,
+    dateFrom: filters.dateFrom || undefined,
+    dateTo: filters.dateTo || undefined,
+    amountMin: filters.amountMin.trim() || undefined,
+    amountMax: filters.amountMax.trim() || undefined
+  };
+}
+
+function hasActiveTransactionFilters(filters: {
+  search: string;
+  categoryId: string;
+  dateFrom: string;
+  dateTo: string;
+  amountMin: string;
+  amountMax: string;
+}) {
+  return Object.values(filters).some((value) => value.trim().length > 0);
+}
+
+function sortTransactions(left: Transaction, right: Transaction) {
+  const dateCompare = right.transactionDate.localeCompare(left.transactionDate);
+  return dateCompare === 0 ? right.id - left.id : dateCompare;
+}
+
+function categoryNameFor(categories: Category[], categoryId: number) {
+  return categories.find((category) => category.id === categoryId)?.name ?? "Uncategorized";
+}
+
+function formatCurrency(amount: string) {
+  return `$${amount}`;
 }
 
 function LoadingScreen() {

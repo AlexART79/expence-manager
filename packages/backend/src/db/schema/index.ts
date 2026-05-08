@@ -51,3 +51,29 @@ export const categories = sqliteTable(
     userNameIdx: uniqueIndex("categories_user_name_idx").on(table.userId, table.normalizedName)
   })
 );
+
+export const transactions = sqliteTable(
+  "transactions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    transactionDate: text("transaction_date").notNull(),
+    notes: text("notes"),
+    currency: text("currency", { enum: ["USD"] }).notNull(),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull()
+  },
+  (table) => ({
+    userIdx: index("transactions_user_idx").on(table.userId),
+    categoryIdx: index("transactions_category_idx").on(table.categoryId),
+    dateIdx: index("transactions_date_idx").on(table.transactionDate),
+    userDateIdx: index("transactions_user_date_idx").on(table.userId, table.transactionDate)
+  })
+);

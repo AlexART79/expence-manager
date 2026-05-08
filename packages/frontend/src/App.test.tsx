@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import type { AuthClient } from "./auth/authClient";
 import type { CategoryClient } from "./categories/categoryClient";
+import type { TransactionClient } from "./transactions/transactionClient";
 
 function createAuthClient(overrides: Partial<AuthClient>): AuthClient {
   return {
@@ -22,6 +23,16 @@ function createCategoryClient(overrides: Partial<CategoryClient>): CategoryClien
     deleteCategory: vi.fn(),
     ...overrides
   } as CategoryClient;
+}
+
+function createTransactionClient(overrides: Partial<TransactionClient>): TransactionClient {
+  return {
+    listTransactions: vi.fn().mockResolvedValue([]),
+    createTransaction: vi.fn(),
+    updateTransaction: vi.fn(),
+    deleteTransaction: vi.fn(),
+    ...overrides
+  } as TransactionClient;
 }
 
 const signedInUser = {
@@ -144,13 +155,14 @@ describe("App shell", () => {
       <App
         authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
         categoryClient={createCategoryClient({ createCategory })}
+        transactionClient={createTransactionClient({})}
       />
     );
 
     await user.type(await screen.findByLabelText("Category name"), "   ");
     await user.click(screen.getByRole("button", { name: "Add category" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Category name is required");
+    expect(await screen.findByText("Category name is required")).toBeInTheDocument();
     expect(createCategory).not.toHaveBeenCalled();
 
     await user.clear(screen.getByLabelText("Category name"));
@@ -205,11 +217,127 @@ describe("App shell", () => {
         categoryClient={createCategoryClient({
           listCategories: vi.fn().mockRejectedValue(new Error("Failed to load categories"))
         })}
+        transactionClient={createTransactionClient({})}
       />
     );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Failed to load categories");
+    expect(await screen.findAllByText("Failed to load categories")).toHaveLength(2);
     expect(screen.getByRole("heading", { name: "Categories" })).toBeInTheDocument();
+  });
+
+  it("loads transactions on the authenticated homepage", async () => {
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Groceries", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({
+          listTransactions: vi.fn().mockResolvedValue([
+            {
+              id: 1,
+              categoryId: 1,
+              title: "Farmers market",
+              amount: "42.35",
+              amountCents: 4235,
+              transactionDate: "2026-05-08",
+              notes: "fresh apples",
+              currency: "USD",
+              createdAt: 123,
+              updatedAt: 123
+            }
+          ])
+        })}
+      />
+    );
+
+    expect(await screen.findByRole("heading", { name: "Transactions" })).toBeInTheDocument();
+    expect(await screen.findByText("Farmers market")).toBeInTheDocument();
+    expect(screen.getByText("$42.35")).toBeInTheDocument();
+  });
+
+  it("applies transaction filters through the transaction client", async () => {
+    const user = userEvent.setup();
+    const listTransactions = vi.fn().mockResolvedValue([]);
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 2, name: "Groceries", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({ listTransactions })}
+      />
+    );
+
+    await user.type(await screen.findByLabelText("Search transactions"), "apple");
+    await user.selectOptions(screen.getByLabelText("Filter by category"), "2");
+    await user.type(screen.getByLabelText("From date"), "2026-05-01");
+    await user.type(screen.getByLabelText("To date"), "2026-05-31");
+    await user.type(screen.getByLabelText("Minimum amount"), "20");
+    await user.type(screen.getByLabelText("Maximum amount"), "50");
+    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+
+    await waitFor(() =>
+      expect(listTransactions).toHaveBeenLastCalledWith({
+        search: "apple",
+        categoryId: 2,
+        dateFrom: "2026-05-01",
+        dateTo: "2026-05-31",
+        amountMin: "20",
+        amountMax: "50"
+      })
+    );
+  });
+
+  it("validates and creates transactions from the authenticated homepage", async () => {
+    const user = userEvent.setup();
+    const createTransaction = vi.fn().mockResolvedValue({
+      id: 1,
+      categoryId: 1,
+      title: "Lunch",
+      amount: "12.50",
+      amountCents: 1250,
+      transactionDate: "2026-05-08",
+      notes: null,
+      currency: "USD",
+      createdAt: 123,
+      updatedAt: 123
+    });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Food", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({ createTransaction })}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Add transaction" }));
+    await user.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Transaction title is required");
+    expect(createTransaction).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText("Transaction title"), "Lunch");
+    await user.type(screen.getByLabelText("Amount"), "12.50");
+    await user.type(screen.getByLabelText("Transaction date"), "2026-05-08");
+    await user.selectOptions(screen.getByLabelText("Category"), "1");
+    await user.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    await waitFor(() =>
+      expect(createTransaction).toHaveBeenCalledWith({
+        title: "Lunch",
+        amount: "12.50",
+        transactionDate: "2026-05-08",
+        categoryId: 1,
+        notes: null,
+        currency: "USD"
+      })
+    );
+    expect(await screen.findByText("Lunch")).toBeInTheDocument();
   });
 
   it("renders the authenticated header with avatar and current user identity", async () => {

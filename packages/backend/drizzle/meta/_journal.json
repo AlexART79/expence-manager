@@ -15,6 +15,13 @@
       "when": 1778195011808,
       "tag": "0001_ambitious_clea",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778199046000,
+      "tag": "0002_transactions",
+      "breakpoints": true
     }
   ]
 }

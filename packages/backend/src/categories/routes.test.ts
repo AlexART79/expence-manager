@@ -133,12 +133,19 @@ describe("category routes", () => {
     const created = await request(app).post("/api/categories").set("Cookie", sessionCookie).send({ name: "Rent" });
 
     database.db.run(sql`
-      create table transactions (
-        id integer primary key autoincrement,
-        category_id integer not null
+      insert into transactions (
+        user_id,
+        category_id,
+        title,
+        amount_cents,
+        transaction_date,
+        notes,
+        currency,
+        created_at,
+        updated_at
       )
+      values (1, ${created.body.category.id}, 'Rent', 100000, '2026-05-08', null, 'USD', 123, 123)
     `);
-    database.db.run(sql`insert into transactions (category_id) values (${created.body.category.id})`);
 
     const response = await request(app).delete(`/api/categories/${created.body.category.id}`).set("Cookie", sessionCookie);
 
