@@ -1,3 +1,5 @@
+import { Button } from "./Button";
+
 export function DeleteConfirmationOverlay({
   message,
   confirmLabel,
@@ -18,21 +20,24 @@ export function DeleteConfirmationOverlay({
     >
       <p className="min-w-0 text-sm font-medium text-red-100 sm:mr-auto">{message}</p>
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
-          className="inline-flex min-h-9 items-center justify-center rounded-md bg-red-300 px-3 text-sm font-semibold text-red-950 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-          disabled={isDeleting}
+          className="bg-red-300 text-red-950 hover:bg-red-200 focus:ring-red-200"
+          variant="primary"
+          size="sm"
+          isLoading={isDeleting}
           onClick={onConfirm}
         >
           {isDeleting ? "Deleting" : confirmLabel}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+          variant="secondary"
+          size="sm"
           onClick={onCancel}
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );

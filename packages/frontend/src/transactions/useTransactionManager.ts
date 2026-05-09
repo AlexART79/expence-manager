@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import type { Category, CategoryClient } from "../categories/categoryClient";
 import type { Transaction, TransactionClient } from "./transactionClient";
 import { TRANSACTION_MESSAGES, TRANSACTION_PENDING_ACTIONS } from "./transactionConstants";
@@ -12,6 +12,7 @@ import {
   validateTransactionForm
 } from "./transactionFormState";
 import type { TransactionFilterFormState, TransactionFormState } from "./transactionFormState";
+import type { TransactionFormValidationError } from "./transactionFormState";
 
 export function useTransactionManager(
   categoryClient: CategoryClient,
@@ -27,6 +28,7 @@ export function useTransactionManager(
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<TransactionFormValidationError | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const filterRequestId = useRef(0);
 
@@ -98,7 +100,7 @@ export function useTransactionManager(
   async function saveTransaction() {
     const validationError = validateTransactionForm(form);
     if (validationError) {
-      setError(validationError);
+      setFormError(validationError);
       return;
     }
 
@@ -121,6 +123,7 @@ export function useTransactionManager(
       setEditingTransaction(null);
       setIsFormOpen(false);
       setError(null);
+      setFormError(null);
       onTransactionsChanged?.();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : TRANSACTION_MESSAGES.saveFailed);
@@ -147,6 +150,7 @@ export function useTransactionManager(
   function startCreate() {
     setEditingTransaction(null);
     setForm(createEmptyTransactionForm());
+    setFormError(null);
     setDeleteConfirmationId(null);
     setIsFormOpen(true);
   }
@@ -154,6 +158,7 @@ export function useTransactionManager(
   function startEdit(transaction: Transaction) {
     setEditingTransaction(transaction);
     setForm(createTransactionFormFromTransaction(transaction));
+    setFormError(null);
     setDeleteConfirmationId(null);
     setIsFormOpen(false);
   }
@@ -161,25 +166,33 @@ export function useTransactionManager(
   function cancelCreate() {
     setIsFormOpen(false);
     setForm(createEmptyTransactionForm());
+    setFormError(null);
   }
 
   function cancelEdit() {
     setEditingTransaction(null);
     setForm(createEmptyTransactionForm());
+    setFormError(null);
   }
+
+  const setTransactionForm: Dispatch<SetStateAction<TransactionFormState>> = (nextForm) => {
+    setForm(nextForm);
+    setFormError(null);
+  };
 
   return {
     categories,
     transactions,
     filters,
     form,
-    setForm,
+    setForm: setTransactionForm,
     editingTransaction,
     deleteConfirmationId,
     setDeleteConfirmationId,
     isFormOpen,
     isLoadingTransactions,
     error,
+    formError,
     pendingAction,
     updateFilter,
     clearFilters,

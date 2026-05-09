@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Button } from "./Button";
 
 type ExpandableSectionProps = {
   eyebrow: string;
@@ -38,9 +39,9 @@ export function ExpandableSection({
         </div>
         <div className={actionsClassName}>
           {actions}
-          <button
+          <Button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-surface text-text transition hover:border-accent/60 hover:text-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+            variant="ghostIcon"
             aria-label={isExpanded ? collapseLabel : expandLabel}
             aria-expanded={isExpanded}
             aria-controls={panelId}
@@ -60,7 +61,7 @@ export function ExpandableSection({
                 strokeLinejoin="round"
               />
             </svg>
-          </button>
+          </Button>
         </div>
       </div>
 

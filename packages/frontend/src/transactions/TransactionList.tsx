@@ -1,15 +1,18 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Category } from "../categories/categoryClient";
+import { SectionState } from "../components/SectionState";
 import { TRANSACTION_MESSAGES, TRANSACTION_PENDING_ACTIONS } from "./transactionConstants";
 import { TransactionRow } from "./TransactionRow";
 import type { Transaction } from "./transactionClient";
 import type { TransactionFormState } from "./transactionFormState";
+import type { TransactionFormValidationError } from "./transactionFormState";
 
 export function TransactionList({
   categories,
   transactions,
   form,
   setForm,
+  formError,
   editingTransaction,
   deleteConfirmationId,
   isLoading,
@@ -26,6 +29,7 @@ export function TransactionList({
   transactions: Transaction[];
   form: TransactionFormState;
   setForm: Dispatch<SetStateAction<TransactionFormState>>;
+  formError?: TransactionFormValidationError | null;
   editingTransaction: Transaction | null;
   deleteConfirmationId: number | null;
   isLoading: boolean;
@@ -39,23 +43,19 @@ export function TransactionList({
   onConfirmDelete: (transactionId: number) => void;
 }) {
   if (isLoading) {
-    return (
-      <div className="mt-5 rounded-md border border-white/10 bg-surface px-4 py-5 text-sm text-text-muted" role="status">
-        {TRANSACTION_MESSAGES.loading}
-      </div>
-    );
+    return <SectionState state="loading" title={TRANSACTION_MESSAGES.loading} className="mt-5" />;
   }
 
   if (transactions.length === 0) {
     return (
-      <div className="mt-5 rounded-md border border-dashed border-white/15 bg-surface px-4 py-6">
-        <p className="text-sm font-semibold text-text">
-          {hasActiveFilters ? TRANSACTION_MESSAGES.emptyFilteredTitle : TRANSACTION_MESSAGES.emptyTitle}
-        </p>
-        <p className="mt-1 text-sm text-text-muted">
-          {hasActiveFilters ? TRANSACTION_MESSAGES.emptyFilteredDescription : TRANSACTION_MESSAGES.emptyDescription}
-        </p>
-      </div>
+      <SectionState
+        state="empty"
+        title={hasActiveFilters ? TRANSACTION_MESSAGES.emptyFilteredTitle : TRANSACTION_MESSAGES.emptyTitle}
+        description={
+          hasActiveFilters ? TRANSACTION_MESSAGES.emptyFilteredDescription : TRANSACTION_MESSAGES.emptyDescription
+        }
+        className="mt-5"
+      />
     );
   }
 
@@ -68,6 +68,7 @@ export function TransactionList({
           categories={categories}
           form={form}
           setForm={setForm}
+          formError={formError}
           isEditing={editingTransaction?.id === transaction.id}
           isConfirmingDelete={deleteConfirmationId === transaction.id}
           isSaving={pendingAction === TRANSACTION_PENDING_ACTIONS.update(transaction.id)}

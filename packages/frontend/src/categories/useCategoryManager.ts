@@ -10,6 +10,8 @@ export function useCategoryManager(categoryClient: CategoryClient) {
   const [editingName, setEditingName] = useState("");
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [createNameError, setCreateNameError] = useState<string | null>(null);
+  const [renameNameError, setRenameNameError] = useState<string | null>(null);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
@@ -44,7 +46,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
   async function createCategory() {
     const trimmedName = newName.trim();
     if (!trimmedName) {
-      setError(CATEGORY_MESSAGES.nameRequired);
+      setCreateNameError(CATEGORY_MESSAGES.nameRequired);
       return;
     }
 
@@ -54,6 +56,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
       setCategories((current) => [...current, category].sort(sortCategories));
       setNewName("");
       setError(null);
+      setCreateNameError(null);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : CATEGORY_MESSAGES.createFailed);
     } finally {
@@ -64,7 +67,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
   async function renameCategory(categoryId: number) {
     const trimmedName = editingName.trim();
     if (!trimmedName) {
-      setError(CATEGORY_MESSAGES.nameRequired);
+      setRenameNameError(CATEGORY_MESSAGES.nameRequired);
       return;
     }
 
@@ -77,6 +80,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
       setEditingId(null);
       setEditingName("");
       setError(null);
+      setRenameNameError(null);
     } catch (renameError) {
       setError(renameError instanceof Error ? renameError.message : CATEGORY_MESSAGES.renameFailed);
     } finally {
@@ -102,11 +106,13 @@ export function useCategoryManager(categoryClient: CategoryClient) {
     setDeleteConfirmationId(null);
     setEditingId(category.id);
     setEditingName(category.name);
+    setRenameNameError(null);
   }
 
   function cancelRename() {
     setEditingId(null);
     setEditingName("");
+    setRenameNameError(null);
   }
 
   return {
@@ -116,10 +122,18 @@ export function useCategoryManager(categoryClient: CategoryClient) {
     editingName,
     deleteConfirmationId,
     error,
+    createNameError,
+    renameNameError,
     isLoadingCategories,
     pendingAction,
-    setNewName,
-    setEditingName,
+    setEditingName: (name: string) => {
+      setEditingName(name);
+      setRenameNameError(null);
+    },
+    setNewName: (name: string) => {
+      setNewName(name);
+      setCreateNameError(null);
+    },
     setDeleteConfirmationId,
     createCategory,
     renameCategory,

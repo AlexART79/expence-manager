@@ -1,3 +1,4 @@
+import { FIELD_CONTROL_MUTED_CLASS, Field } from "../components/Field";
 import type { Category } from "./categoryClient";
 import { CATEGORY_COPY, CATEGORY_LIMITS, CATEGORY_MESSAGES } from "./categoryConstants";
 import { CategoryRenameActions } from "./CategoryRenameActions";
@@ -10,6 +11,7 @@ export function CategoryRow({
   isConfirmingDelete,
   isRenaming,
   isDeleting,
+  editingError,
   onEditingNameChange,
   onStartRename,
   onSaveRename,
@@ -24,6 +26,7 @@ export function CategoryRow({
   isConfirmingDelete: boolean;
   isRenaming: boolean;
   isDeleting: boolean;
+  editingError?: string | null;
   onEditingNameChange: (name: string) => void;
   onStartRename: () => void;
   onSaveRename: () => void;
@@ -39,15 +42,16 @@ export function CategoryRow({
       } sm:justify-between`}
     >
       {isEditing ? (
-        <label className="mode-transition grid flex-1 gap-2 text-sm font-medium text-text">
-          {CATEGORY_COPY.renameLabel}
-          <input
-            className="min-h-10 rounded-md border border-white/10 bg-surface-muted px-3 text-sm text-text outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
-            value={editingName}
-            maxLength={CATEGORY_LIMITS.nameMaxLength}
-            onChange={(event) => onEditingNameChange(event.target.value)}
-          />
-        </label>
+        <div className="mode-transition flex-1">
+          <Field label={CATEGORY_COPY.renameLabel} error={editingError}>
+            <input
+              className={FIELD_CONTROL_MUTED_CLASS}
+              value={editingName}
+              maxLength={CATEGORY_LIMITS.nameMaxLength}
+              onChange={(event) => onEditingNameChange(event.target.value)}
+            />
+          </Field>
+        </div>
       ) : (
         <div className="mode-transition">
           <p className="font-semibold text-text">{category.name}</p>

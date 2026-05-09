@@ -1,5 +1,24 @@
 type Fetcher = typeof fetch;
 
+type ApiErrorBody = {
+  error?: {
+    code?: string;
+    message?: string;
+  };
+};
+
+export class ApiError extends Error {
+  public readonly status: number;
+  public readonly code?: string;
+
+  public constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 export class ApiClient {
   private readonly baseUrl: string;
   private readonly fetcher: Fetcher;
@@ -75,20 +94,33 @@ export class ApiClient {
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
-    const body = response.status === 204 ? null : ((await response.json()) as unknown);
+    const body = await this.readJsonBody(response);
 
     if (!response.ok) {
-      throw new Error(this.extractErrorMessage(body, response.status));
+      const { message, code } = this.extractError(body, response.status);
+      throw new ApiError(message, response.status, code);
     }
 
     return body as T;
+  }
+
+  private async readJsonBody(response: Response): Promise<unknown> {
+    if (response.status === 204) {
+      return null;
+    }
+
+    try {
+      return (await response.json()) as unknown;
+    } catch {
+      return null;
+    }
   }
 
   private normalizePath(path: string) {
     return path.startsWith("/") ? path : `/${path}`;
   }
 
-  private extractErrorMessage(body: unknown, status: number) {
+  private extractError(body: unknown, status: number) {
     if (
       typeof body === "object" &&
       body !== null &&
@@ -98,10 +130,20 @@ export class ApiClient {
       "message" in body.error &&
       typeof body.error.message === "string"
     ) {
-      return body.error.message;
+      return {
+        message: body.error.message,
+        code: this.extractErrorCode(body as ApiErrorBody)
+      };
     }
 
-    return `API request failed with status ${status}`;
+    return {
+      message: `API request failed with status ${status}`,
+      code: undefined
+    };
+  }
+
+  private extractErrorCode(body: ApiErrorBody) {
+    return typeof body.error?.code === "string" ? body.error.code : undefined;
   }
 }
 

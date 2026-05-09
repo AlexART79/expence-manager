@@ -5,6 +5,7 @@ import {
   getCurrentBudgetMonth,
   toBudgetInput,
   validateBudgetForm,
+  type BudgetFormValidationError,
   type BudgetFormState
 } from "./budgetFormState";
 import { BUDGET_MESSAGES } from "./budgetConstants";
@@ -16,6 +17,7 @@ export function useBudgetDashboard(budgetClient: BudgetClient, refreshKey: numbe
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<BudgetFormValidationError | null>(null);
 
   useEffect(() => {
     let isCurrent = true;
@@ -28,6 +30,7 @@ export function useBudgetDashboard(budgetClient: BudgetClient, refreshKey: numbe
           setSummary(loadedSummary);
           setForm(createBudgetForm(loadedSummary));
           setError(null);
+          setFormError(null);
         }
       })
       .catch((loadError: unknown) => {
@@ -48,12 +51,13 @@ export function useBudgetDashboard(budgetClient: BudgetClient, refreshKey: numbe
 
   function updateAmount(amount: string) {
     setForm({ amount });
+    setFormError(null);
   }
 
   async function saveBudget() {
     const validationError = validateBudgetForm(form);
     if (validationError) {
-      setError(validationError);
+      setFormError(validationError);
       return;
     }
 
@@ -64,6 +68,7 @@ export function useBudgetDashboard(budgetClient: BudgetClient, refreshKey: numbe
       setSummary(loadedSummary);
       setForm(createBudgetForm(loadedSummary));
       setError(null);
+      setFormError(null);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : BUDGET_MESSAGES.saveFailed);
     } finally {
@@ -80,6 +85,7 @@ export function useBudgetDashboard(budgetClient: BudgetClient, refreshKey: numbe
     isLoading,
     isSaving,
     error,
+    formError,
     saveBudget
   };
 }

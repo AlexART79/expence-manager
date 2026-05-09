@@ -275,6 +275,7 @@ describe("App shell", () => {
     await user.click(screen.getByRole("button", { name: "Add category" }));
 
     expect(await screen.findByText("Category name is required")).toBeInTheDocument();
+    expect(screen.getByLabelText("Category name")).toHaveAttribute("aria-invalid", "true");
     expect(createCategory).not.toHaveBeenCalled();
 
     await user.clear(screen.getByLabelText("Category name"));
@@ -471,6 +472,11 @@ describe("App shell", () => {
     );
 
     await user.click(await screen.findByRole("button", { name: "Expand budget" }));
+    await user.click(screen.getByRole("button", { name: "Save budget" }));
+
+    expect(await screen.findByText("Budget amount is required")).toBeInTheDocument();
+    expect(screen.getByLabelText("Monthly budget amount")).toHaveAttribute("aria-invalid", "true");
+
     await user.type(await screen.findByLabelText("Monthly budget amount"), "600.00");
     await user.click(screen.getByRole("button", { name: "Save budget" }));
 
@@ -525,6 +531,24 @@ describe("App shell", () => {
     expect(screen.getByLabelText("To date")).toHaveValue("");
     expect(screen.getByLabelText("Minimum amount")).toHaveValue("");
     expect(screen.getByLabelText("Maximum amount")).toHaveValue("");
+  });
+
+  it("shows a clear no-results state when live transaction filters match nothing", async () => {
+    const user = userEvent.setup();
+    const listTransactions = vi.fn().mockResolvedValue([]);
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({})}
+        transactionClient={createTransactionClient({ listTransactions })}
+      />
+    );
+
+    await user.type(await screen.findByLabelText("Search transactions"), "not-a-real-expense");
+
+    expect(await screen.findByText("No transactions match")).toBeInTheDocument();
+    expect(screen.getByText("Adjust filters to broaden the ledger.")).toBeInTheDocument();
   });
 
   it("opens native date pickers when date controls are clicked", async () => {
@@ -586,6 +610,7 @@ describe("App shell", () => {
     await user.click(screen.getByRole("button", { name: "Save transaction" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Transaction title is required");
+    expect(screen.getByLabelText("Transaction title")).toHaveAttribute("aria-invalid", "true");
     expect(createTransaction).not.toHaveBeenCalled();
 
     await user.type(screen.getByLabelText("Transaction title"), "Lunch");
