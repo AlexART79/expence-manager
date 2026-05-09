@@ -1,4 +1,5 @@
-import type { BudgetSummary } from "./budgetClient";
+import type { BudgetInput, BudgetSummary } from "./budgetClient";
+import { BUDGET_FIELD_LIMITS, BUDGET_MESSAGES, SUPPORTED_BUDGET_CURRENCY } from "./budgetConstants";
 
 export type BudgetFormState = {
   amount: string;
@@ -20,23 +21,23 @@ export function validateBudgetForm(form: BudgetFormState) {
   const amount = form.amount.trim();
 
   if (!amount) {
-    return "Budget amount is required";
+    return BUDGET_MESSAGES.amountRequired;
   }
 
-  if (!/^\d+(\.\d{1,2})?$/.test(amount)) {
-    return "Budget amount must be a valid decimal";
+  if (!BUDGET_FIELD_LIMITS.decimalPattern.test(amount)) {
+    return BUDGET_MESSAGES.amountInvalid;
   }
 
   if (Number(amount) <= 0) {
-    return "Budget amount must be greater than 0";
+    return BUDGET_MESSAGES.amountPositive;
   }
 
   return null;
 }
 
-export function toBudgetInput(form: BudgetFormState) {
+export function toBudgetInput(form: BudgetFormState): BudgetInput {
   return {
     amount: form.amount.trim(),
-    currency: "USD" as const
+    currency: SUPPORTED_BUDGET_CURRENCY
   };
 }

@@ -9,6 +9,16 @@ This file extends the repository-level `AGENTS.md` for work inside `packages/fro
 - Keep async feature state in focused React hooks next to the feature that owns it.
 - Do not add Docker, CI, deployment, or infrastructure files from frontend work unless the user explicitly asks.
 
+## React Structure Rules
+
+- Prefer one exported React component per component file. Move sibling row, action, summary, field, and provider subcomponents into separate files in the same feature folder once they are more than a tiny local fragment.
+- Keep component files mostly presentational: prop types, JSX, and event wiring. Move reusable helpers, formatting, sorting, parsing, route helpers, and display logic into non-component modules.
+- Put async state, effects, request ordering, loading/error/pending state, and create/update/delete actions into focused hooks near the feature that owns them.
+- Use hooks to wrap browser and external-system lifecycles, such as route synchronization, session bootstrap, theme persistence, avatar fallback, WebSocket connections, and dashboard data loading.
+- Keep forms and rows API-agnostic. They should report user intent upward through typed props rather than call HTTP clients directly.
+- Use named constants for routes, event names, validation limits, supported currencies, action keys, provider metadata, repeated labels, and user-facing messages. Keep one-off Tailwind class strings inline unless the class set is reused.
+- Avoid mechanically extracting every small inline JSX callback before the larger state and component boundaries are clean. Prioritize hooks, helpers, and constants that reduce real component complexity.
+
 ## Current UI Boundaries
 
 - `src/App.tsx`: top-level screen selection and composition.

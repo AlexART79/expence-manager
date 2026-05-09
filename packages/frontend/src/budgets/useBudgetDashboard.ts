@@ -7,11 +7,7 @@ import {
   validateBudgetForm,
   type BudgetFormState
 } from "./budgetFormState";
-
-const BUDGET_MESSAGES = {
-  loadFailed: "Failed to load budget summary",
-  saveFailed: "Failed to save budget"
-};
+import { BUDGET_MESSAGES } from "./budgetConstants";
 
 export function useBudgetDashboard(budgetClient: BudgetClient, refreshKey: number) {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentBudgetMonth());
