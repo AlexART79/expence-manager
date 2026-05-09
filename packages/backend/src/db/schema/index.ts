@@ -96,3 +96,24 @@ export const monthlyBudgets = sqliteTable(
     userMonthIdx: uniqueIndex("monthly_budgets_user_month_idx").on(table.userId, table.month)
   })
 );
+
+export const budgetAlertStates = sqliteTable(
+  "budget_alert_states",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    month: text("month").notNull(),
+    threshold: integer("threshold").notNull(),
+    createdAt: integer("created_at").notNull()
+  },
+  (table) => ({
+    userMonthIdx: index("budget_alert_states_user_month_idx").on(table.userId, table.month),
+    userMonthThresholdIdx: uniqueIndex("budget_alert_states_user_month_threshold_idx").on(
+      table.userId,
+      table.month,
+      table.threshold
+    )
+  })
+);

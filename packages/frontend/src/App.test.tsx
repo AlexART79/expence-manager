@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -27,6 +27,7 @@ vi.mock("./budgets/budgetClient", async (importOriginal) => {
 
 import { App } from "./App";
 import type { AuthClient } from "./auth/authClient";
+import type { BudgetAlert, BudgetAlertClient } from "./budgetAlerts/budgetAlertClient";
 import type { BudgetClient } from "./budgets/budgetClient";
 import type { CategoryClient } from "./categories/categoryClient";
 import type { TransactionClient } from "./transactions/transactionClient";
@@ -66,6 +67,15 @@ function createBudgetClient(overrides: Partial<BudgetClient>): BudgetClient {
     }),
     ...overrides
   } as BudgetClient;
+}
+
+function createBudgetAlertClient(onSubscribe: (onAlert: (alert: BudgetAlert) => void) => void): BudgetAlertClient {
+  return {
+    subscribe: vi.fn((onAlert) => {
+      onSubscribe(onAlert);
+      return vi.fn();
+    })
+  };
 }
 
 function createTransactionClient(overrides: Partial<TransactionClient>): TransactionClient {
@@ -621,6 +631,46 @@ describe("App shell", () => {
 
     await waitFor(() => expect(createTransaction).toHaveBeenCalled());
     await waitFor(() => expect(getBudgetSummary).toHaveBeenCalledTimes(2));
+  });
+
+  it("renders and dismisses inline budget alert banners", async () => {
+    const user = userEvent.setup();
+    let alertListener: ((alert: BudgetAlert) => void) | null = null;
+    const budgetAlertClient = createBudgetAlertClient((onAlert) => {
+      alertListener = onAlert;
+    });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({})}
+        transactionClient={createTransactionClient({})}
+        budgetClient={createBudgetClient({})}
+        budgetAlertClient={budgetAlertClient}
+      />
+    );
+
+    expect(await screen.findByRole("heading", { name: "Monthly budget" })).toBeInTheDocument();
+    await waitFor(() => expect(budgetAlertClient.subscribe).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      alertListener?.({
+        month: "2026-05",
+        threshold: 80,
+        usagePercentage: 82.5,
+        totalSpent: "825.00",
+        budgetAmount: "1000.00",
+        currency: "USD",
+        message: "You have used 80% of your May budget."
+      });
+    });
+
+    expect(await screen.findByText("You have used 80% of your May budget.")).toBeInTheDocument();
+    expect(screen.getByText("$825.00 spent of $1000.00")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Dismiss 80% budget alert" }));
+
+    expect(screen.queryByText("You have used 80% of your May budget.")).not.toBeInTheDocument();
   });
 
   it("edits transactions inline without opening the create form above the list", async () => {

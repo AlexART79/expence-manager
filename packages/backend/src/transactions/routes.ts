@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { AppEnv } from "../env.js";
 import type { DatabaseHandle } from "../db/connection.js";
 import { requireAuth } from "../auth/requireAuth.js";
+import type { BudgetAlertNotifier } from "../budget-alerts/websocket.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { createTransaction, deleteTransaction, listTransactions, updateTransaction } from "./service.js";
 
@@ -35,7 +36,15 @@ const transactionQuerySchema = z.object({
   amountMax: amountSchema.optional()
 });
 
-export function createTransactionRouter(database: DatabaseHandle, env: AppEnv) {
+type CreateTransactionRouterOptions = {
+  budgetAlertNotifier?: BudgetAlertNotifier;
+};
+
+export function createTransactionRouter(
+  database: DatabaseHandle,
+  env: AppEnv,
+  options: CreateTransactionRouterOptions = {}
+) {
   const router = Router();
 
   router.use("/api/transactions", requireAuth(database, env));
@@ -46,6 +55,7 @@ export function createTransactionRouter(database: DatabaseHandle, env: AppEnv) {
 
   router.post("/api/transactions", validateRequest({ body: transactionBodySchema }), (req, res) => {
     const transaction = createTransaction(database.db, req.currentUser!.id, req.body);
+    options.budgetAlertNotifier?.notifyBudgetMayHaveChanged(req.currentUser!.id);
     res.status(201).json({ transaction });
   });
 
@@ -55,6 +65,7 @@ export function createTransactionRouter(database: DatabaseHandle, env: AppEnv) {
     (req, res) => {
       const transactionId = Number(req.params.transactionId);
       const transaction = updateTransaction(database.db, req.currentUser!.id, transactionId, req.body);
+      options.budgetAlertNotifier?.notifyBudgetMayHaveChanged(req.currentUser!.id);
       res.json({ transaction });
     }
   );
@@ -62,6 +73,7 @@ export function createTransactionRouter(database: DatabaseHandle, env: AppEnv) {
   router.delete("/api/transactions/:transactionId", validateRequest({ params: transactionParamsSchema }), (req, res) => {
     const transactionId = Number(req.params.transactionId);
     deleteTransaction(database.db, req.currentUser!.id, transactionId);
+    options.budgetAlertNotifier?.notifyBudgetMayHaveChanged(req.currentUser!.id);
     res.status(204).send();
   });
 
