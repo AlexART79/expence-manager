@@ -77,3 +77,22 @@ export const transactions = sqliteTable(
     userDateIdx: index("transactions_user_date_idx").on(table.userId, table.transactionDate)
   })
 );
+
+export const monthlyBudgets = sqliteTable(
+  "monthly_budgets",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    month: text("month").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency", { enum: ["USD"] }).notNull(),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull()
+  },
+  (table) => ({
+    userIdx: index("monthly_budgets_user_idx").on(table.userId),
+    userMonthIdx: uniqueIndex("monthly_budgets_user_month_idx").on(table.userId, table.month)
+  })
+);

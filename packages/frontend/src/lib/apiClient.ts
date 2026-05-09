@@ -32,6 +32,20 @@ export class ApiClient {
     return this.handleResponse<T>(response);
   }
 
+  public async put<T>(path: string, body?: unknown): Promise<T> {
+    const response = await this.fetcher(`${this.baseUrl}${this.normalizePath(path)}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
   public async patch<T>(path: string, body?: unknown): Promise<T> {
     const response = await this.fetcher(`${this.baseUrl}${this.normalizePath(path)}`, {
       method: "PATCH",

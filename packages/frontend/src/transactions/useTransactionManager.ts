@@ -13,7 +13,11 @@ import {
 } from "./transactionFormState";
 import type { TransactionFilterFormState, TransactionFormState } from "./transactionFormState";
 
-export function useTransactionManager(categoryClient: CategoryClient, transactionClient: TransactionClient) {
+export function useTransactionManager(
+  categoryClient: CategoryClient,
+  transactionClient: TransactionClient,
+  onTransactionsChanged?: () => void
+) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filters, setFilters] = useState<TransactionFilterFormState>(createEmptyTransactionFilters());
@@ -117,6 +121,7 @@ export function useTransactionManager(categoryClient: CategoryClient, transactio
       setEditingTransaction(null);
       setIsFormOpen(false);
       setError(null);
+      onTransactionsChanged?.();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : TRANSACTION_MESSAGES.saveFailed);
     } finally {
@@ -131,6 +136,7 @@ export function useTransactionManager(categoryClient: CategoryClient, transactio
       setTransactions((current) => current.filter((transaction) => transaction.id !== transactionId));
       setDeleteConfirmationId(null);
       setError(null);
+      onTransactionsChanged?.();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : TRANSACTION_MESSAGES.deleteFailed);
     } finally {

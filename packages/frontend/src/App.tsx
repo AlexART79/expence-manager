@@ -6,6 +6,8 @@ import type { AuthClient } from "./auth/authClient";
 import { AuthErrorScreen } from "./auth/AuthErrorScreen";
 import { LoginPage } from "./auth/LoginPage";
 import { useAuthSession } from "./auth/useAuthSession";
+import { budgetClient as defaultBudgetClient } from "./budgets/budgetClient";
+import type { BudgetClient } from "./budgets/budgetClient";
 import { categoryClient as defaultCategoryClient } from "./categories/categoryClient";
 import type { CategoryClient } from "./categories/categoryClient";
 import { LoadingScreen } from "./components/LoadingScreen";
@@ -19,13 +21,15 @@ type AppProps = {
   authClient?: AuthClient;
   categoryClient?: CategoryClient;
   transactionClient?: TransactionClient;
+  budgetClient?: BudgetClient;
 };
 
 export function App({
   isLoading = false,
   authClient = defaultAuthClient,
   categoryClient = defaultCategoryClient,
-  transactionClient = defaultTransactionClient
+  transactionClient = defaultTransactionClient,
+  budgetClient = defaultBudgetClient
 }: AppProps) {
   const { isDark, setIsDark } = useThemePreference();
   const { route, navigateTo } = useAppRoute();
@@ -67,6 +71,7 @@ export function App({
           onLogout={logout}
           categoryClient={categoryClient}
           transactionClient={transactionClient}
+          budgetClient={budgetClient}
         />
       )}
     </div>

@@ -3,6 +3,7 @@ import type { Express } from "express";
 import cors from "cors";
 import { pinoHttp } from "pino-http";
 import { createAuthRouter } from "./auth/routes.js";
+import { createBudgetRouter } from "./budgets/routes.js";
 import { createCategoryRouter } from "./categories/routes.js";
 import { createTransactionRouter } from "./transactions/routes.js";
 import { database as defaultDatabase } from "./db/connection.js";
@@ -43,6 +44,7 @@ export function createApp(options: CreateAppOptions = {}) {
   app.use(createAuthRouter(appDatabase, appEnv));
   app.use(createCategoryRouter(appDatabase, appEnv));
   app.use(createTransactionRouter(appDatabase, appEnv));
+  app.use(createBudgetRouter(appDatabase, appEnv));
   options.configureRoutes?.(app);
   app.use(notFoundHandler);
   app.use(errorHandler);
