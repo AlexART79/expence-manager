@@ -17,7 +17,8 @@ import type { TransactionFormValidationError } from "./transactionFormState";
 export function useTransactionManager(
   categoryClient: CategoryClient,
   transactionClient: TransactionClient,
-  onTransactionsChanged?: () => void
+  onTransactionsChanged?: () => void,
+  categoryRefreshKey = 0
 ) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -59,6 +60,32 @@ export function useTransactionManager(
       isCurrent = false;
     };
   }, [categoryClient, transactionClient]);
+
+  useEffect(() => {
+    if (categoryRefreshKey === 0) {
+      return;
+    }
+
+    let isCurrent = true;
+
+    categoryClient
+      .listCategories()
+      .then((loadedCategories) => {
+        if (isCurrent) {
+          setCategories(loadedCategories);
+          setError(null);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (isCurrent) {
+          setError(loadError instanceof Error ? loadError.message : TRANSACTION_MESSAGES.loadFailed);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [categoryClient, categoryRefreshKey]);
 
   async function runTransactionFilters(nextFilters: TransactionFilterFormState) {
     const requestId = filterRequestId.current + 1;
