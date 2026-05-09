@@ -367,6 +367,11 @@ describe("App shell", () => {
 
   it("renders the monthly budget dashboard with the selected month and no-budget state", async () => {
     const currentMonth = new Date().toISOString().slice(0, 7);
+    const currentMonthLabel = new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      timeZone: "UTC",
+      year: "numeric"
+    }).format(new Date(`${currentMonth}-01T00:00:00.000Z`));
     const getBudgetSummary = vi.fn().mockResolvedValue({
       month: currentMonth,
       budget: null,
@@ -388,10 +393,19 @@ describe("App shell", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Monthly budget" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Budget month")).toHaveValue(currentMonth);
+    expect(screen.queryByLabelText("Budget month")).not.toBeInTheDocument();
     expect((await screen.findAllByText("No budget set"))[0]).toBeInTheDocument();
-    expect(screen.getByText("$12.50")).toBeInTheDocument();
+    expect(screen.getByText(`${currentMonthLabel} budget`)).toBeInTheDocument();
+    expect(screen.getByText("Remaining")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand budget" })).toHaveAttribute("aria-expanded", "false");
     expect(getBudgetSummary).toHaveBeenCalledWith(currentMonth);
+
+    await userEvent.click(screen.getByRole("button", { name: "Expand budget" }));
+
+    expect(screen.getByLabelText("Budget month")).toHaveValue(currentMonth);
+    await waitFor(() => expect(screen.queryByText(`${currentMonthLabel} budget`)).not.toBeInTheDocument());
+    expect(screen.getByText("$12.50")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Collapse budget" })).toHaveAttribute("aria-expanded", "true");
   });
 
   it("saves a monthly budget from the dashboard", async () => {
@@ -446,11 +460,12 @@ describe("App shell", () => {
       />
     );
 
+    await user.click(await screen.findByRole("button", { name: "Expand budget" }));
     await user.type(await screen.findByLabelText("Monthly budget amount"), "600.00");
     await user.click(screen.getByRole("button", { name: "Save budget" }));
 
     await waitFor(() => expect(setBudget).toHaveBeenCalledWith(currentMonth, { amount: "600.00", currency: "USD" }));
-    expect(await screen.findByText("$587.50")).toBeInTheDocument();
+    expect((await screen.findAllByText("$587.50"))[0]).toBeInTheDocument();
     expect(screen.getAllByText("2.08%")[0]).toBeInTheDocument();
   });
 
