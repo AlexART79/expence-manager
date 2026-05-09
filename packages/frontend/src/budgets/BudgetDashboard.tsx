@@ -5,6 +5,7 @@ import { formatBudgetCurrency, formatBudgetMonth, formatUsagePercentage } from "
 import { BudgetHeaderSummary } from "./BudgetHeaderSummary";
 import { BudgetMetricsGrid } from "./BudgetMetricsGrid";
 import { BudgetUsagePanel } from "./BudgetUsagePanel";
+import { openNativeDatePicker } from "../components/nativeDatePicker";
 import { useBudgetDashboard } from "./useBudgetDashboard";
 import { useBudgetPanel } from "./useBudgetPanel";
 
@@ -83,6 +84,7 @@ export function BudgetDashboard({ budgetClient, refreshKey }: { budgetClient: Bu
             className="field-control field-date min-h-10 w-full rounded-md border border-white/10 bg-surface px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
             type="month"
             value={dashboard.selectedMonth}
+            onClick={(event) => openNativeDatePicker(event.currentTarget)}
             onChange={(event) => dashboard.setSelectedMonth(event.target.value)}
           />
         </label>

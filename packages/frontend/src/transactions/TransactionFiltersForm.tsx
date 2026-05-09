@@ -1,4 +1,5 @@
 import type { Category } from "../categories/categoryClient";
+import { openNativeDatePicker } from "../components/nativeDatePicker";
 import { TRANSACTION_COPY } from "./transactionConstants";
 import type { TransactionFilterFormState } from "./transactionFormState";
 import { hasActiveTransactionFilters } from "./transactionFormState";
@@ -56,6 +57,7 @@ export function TransactionFiltersForm({
           className={`${DATE_FIELD_CLASS} ${filters.dateFrom ? "" : "field-control--placeholder"}`}
           type="date"
           value={filters.dateFrom}
+          onClick={(event) => openNativeDatePicker(event.currentTarget)}
           onChange={(event) => onFilterChange("dateFrom", event.target.value)}
         />
       </label>
@@ -65,6 +67,7 @@ export function TransactionFiltersForm({
           className={`${DATE_FIELD_CLASS} ${filters.dateTo ? "" : "field-control--placeholder"}`}
           type="date"
           value={filters.dateTo}
+          onClick={(event) => openNativeDatePicker(event.currentTarget)}
           onChange={(event) => onFilterChange("dateTo", event.target.value)}
         />
       </label>

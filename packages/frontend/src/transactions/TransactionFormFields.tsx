@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Category } from "../categories/categoryClient";
+import { openNativeDatePicker } from "../components/nativeDatePicker";
 import { TRANSACTION_COPY, TRANSACTION_CURRENCY, TRANSACTION_LIMITS } from "./transactionConstants";
 import type { TransactionFormLabels, TransactionFormState } from "./transactionFormState";
 
@@ -47,6 +48,7 @@ export function TransactionFormFields({
           className={`${TRANSACTION_DATE_CLASS} ${form.transactionDate ? "" : "field-control--placeholder"}`}
           type="date"
           value={form.transactionDate}
+          onClick={(event) => openNativeDatePicker(event.currentTarget)}
           onChange={(event) => setForm((current) => ({ ...current, transactionDate: event.target.value }))}
         />
       </label>

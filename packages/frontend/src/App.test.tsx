@@ -527,6 +527,36 @@ describe("App shell", () => {
     expect(screen.getByLabelText("Maximum amount")).toHaveValue("");
   });
 
+  it("opens native date pickers when date controls are clicked", async () => {
+    const user = userEvent.setup();
+    const showPicker = vi.fn();
+    const originalShowPicker = HTMLInputElement.prototype.showPicker;
+    HTMLInputElement.prototype.showPicker = showPicker;
+
+    try {
+      render(
+        <App
+          authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+          categoryClient={createCategoryClient({})}
+          transactionClient={createTransactionClient({})}
+        />
+      );
+
+      await user.click(await screen.findByLabelText("From date"));
+      expect(showPicker).toHaveBeenCalledTimes(1);
+
+      await user.click(screen.getByRole("button", { name: "Expand budget" }));
+      await user.click(await screen.findByLabelText("Budget month"));
+      expect(showPicker).toHaveBeenCalledTimes(2);
+    } finally {
+      if (originalShowPicker) {
+        HTMLInputElement.prototype.showPicker = originalShowPicker;
+      } else {
+        Reflect.deleteProperty(HTMLInputElement.prototype, "showPicker");
+      }
+    }
+  });
+
   it("validates and creates transactions from the authenticated homepage", async () => {
     const user = userEvent.setup();
     const createTransaction = vi.fn().mockResolvedValue({
