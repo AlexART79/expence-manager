@@ -1,3 +1,4 @@
+import { Button } from "../components/Button";
 import { TRANSACTION_COPY } from "./transactionConstants";
 import type { Transaction } from "./transactionClient";
 
@@ -12,22 +13,24 @@ export function TransactionRowActions({
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <button
+      <Button
         type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+        variant="secondary"
+        size="sm"
         aria-label={TRANSACTION_COPY.editAriaLabel(transaction.title)}
         onClick={onStartEdit}
       >
         {TRANSACTION_COPY.edit}
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-red-400/30 px-3 text-sm font-medium text-red-200 transition hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+        variant="danger"
+        size="sm"
         aria-label={TRANSACTION_COPY.deleteAriaLabel(transaction.title)}
         onClick={onAskDelete}
       >
         {TRANSACTION_COPY.delete}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -24,6 +24,11 @@ export type TransactionFormState = {
   currency: TransactionCurrency;
 };
 
+export type TransactionFormValidationError = {
+  field: keyof TransactionFormState;
+  message: string;
+};
+
 export type TransactionFilterFormState = {
   search: string;
   categoryId: string;
@@ -57,27 +62,27 @@ export function createTransactionFormFromTransaction(transaction: Transaction): 
 
 export function validateTransactionForm(form: TransactionFormState) {
   if (!form.title.trim()) {
-    return TRANSACTION_MESSAGES.titleRequired;
+    return { field: "title", message: TRANSACTION_MESSAGES.titleRequired } satisfies TransactionFormValidationError;
   }
 
   if (!TRANSACTION_REGEX.amount.test(form.amount.trim()) || Number(form.amount) <= 0) {
-    return TRANSACTION_MESSAGES.amountInvalid;
+    return { field: "amount", message: TRANSACTION_MESSAGES.amountInvalid } satisfies TransactionFormValidationError;
   }
 
   if (!form.transactionDate) {
-    return TRANSACTION_MESSAGES.dateRequired;
+    return { field: "transactionDate", message: TRANSACTION_MESSAGES.dateRequired } satisfies TransactionFormValidationError;
   }
 
   if (!form.categoryId) {
-    return TRANSACTION_MESSAGES.categoryRequired;
+    return { field: "categoryId", message: TRANSACTION_MESSAGES.categoryRequired } satisfies TransactionFormValidationError;
   }
 
   if (form.currency !== TRANSACTION_CURRENCY) {
-    return TRANSACTION_MESSAGES.currencyInvalid;
+    return { field: "currency", message: TRANSACTION_MESSAGES.currencyInvalid } satisfies TransactionFormValidationError;
   }
 
   if (form.notes.length > TRANSACTION_LIMITS.notesMaxLength) {
-    return TRANSACTION_MESSAGES.notesTooLong;
+    return { field: "notes", message: TRANSACTION_MESSAGES.notesTooLong } satisfies TransactionFormValidationError;
   }
 
   return null;

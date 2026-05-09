@@ -4,7 +4,7 @@ import type { Category } from "../categories/categoryClient";
 import { TransactionForm } from "./TransactionForm";
 import { TRANSACTION_COPY } from "./transactionConstants";
 import type { Transaction } from "./transactionClient";
-import type { TransactionFormState } from "./transactionFormState";
+import type { TransactionFormState, TransactionFormValidationError } from "./transactionFormState";
 import { TransactionRowActions } from "./TransactionRowActions";
 import { TransactionSummary } from "./TransactionSummary";
 
@@ -13,6 +13,7 @@ export function TransactionRow({
   categories,
   form,
   setForm,
+  formError,
   isEditing,
   isConfirmingDelete,
   isSaving,
@@ -28,6 +29,7 @@ export function TransactionRow({
   categories: Category[];
   form: TransactionFormState;
   setForm: Dispatch<SetStateAction<TransactionFormState>>;
+  formError?: TransactionFormValidationError | null;
   isEditing: boolean;
   isConfirmingDelete: boolean;
   isSaving: boolean;
@@ -52,6 +54,7 @@ export function TransactionRow({
             form={form}
             setForm={setForm}
             labels={TRANSACTION_COPY.editLabels}
+            validationError={formError}
             saveLabel={TRANSACTION_COPY.saveTransactionChanges}
             isSaving={isSaving}
             onSave={onSave}

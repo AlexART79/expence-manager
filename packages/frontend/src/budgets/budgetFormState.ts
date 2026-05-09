@@ -5,6 +5,11 @@ export type BudgetFormState = {
   amount: string;
 };
 
+export type BudgetFormValidationError = {
+  field: "amount";
+  message: string;
+};
+
 export function getCurrentBudgetMonth(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -21,15 +26,15 @@ export function validateBudgetForm(form: BudgetFormState) {
   const amount = form.amount.trim();
 
   if (!amount) {
-    return BUDGET_MESSAGES.amountRequired;
+    return { field: "amount", message: BUDGET_MESSAGES.amountRequired } satisfies BudgetFormValidationError;
   }
 
   if (!BUDGET_FIELD_LIMITS.decimalPattern.test(amount)) {
-    return BUDGET_MESSAGES.amountInvalid;
+    return { field: "amount", message: BUDGET_MESSAGES.amountInvalid } satisfies BudgetFormValidationError;
   }
 
   if (Number(amount) <= 0) {
-    return BUDGET_MESSAGES.amountPositive;
+    return { field: "amount", message: BUDGET_MESSAGES.amountPositive } satisfies BudgetFormValidationError;
   }
 
   return null;

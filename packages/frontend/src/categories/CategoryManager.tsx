@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ExpandableSection } from "../components/ExpandableSection";
+import { InlineAlert } from "../components/InlineAlert";
+import { SectionState } from "../components/SectionState";
 import { CategoryCreateForm } from "./CategoryCreateForm";
 import { CategoryRow } from "./CategoryRow";
 import type { CategoryClient } from "./categoryClient";
@@ -30,26 +32,24 @@ export function CategoryManager({ categoryClient }: { categoryClient: CategoryCl
       <CategoryCreateForm
         newName={manager.newName}
         isCreating={manager.pendingAction === CATEGORY_PENDING_ACTIONS.create}
+        error={manager.createNameError}
         onNameChange={manager.setNewName}
         onCreate={manager.createCategory}
       />
 
       {manager.error ? (
-        <p className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
-          {manager.error}
-        </p>
+        <InlineAlert className="mt-4">{manager.error}</InlineAlert>
       ) : null}
 
       <div className="mt-5">
         {manager.isLoadingCategories ? (
-          <div className="rounded-md border border-white/10 bg-surface px-4 py-5 text-sm text-text-muted" role="status">
-            {CATEGORY_MESSAGES.loading}
-          </div>
+          <SectionState state="loading" title={CATEGORY_MESSAGES.loading} />
         ) : manager.categories.length === 0 ? (
-          <div className="rounded-md border border-dashed border-white/15 bg-surface px-4 py-6">
-            <p className="text-sm font-semibold text-text">{CATEGORY_MESSAGES.emptyTitle}</p>
-            <p className="mt-1 text-sm text-text-muted">{CATEGORY_MESSAGES.emptyDescription}</p>
-          </div>
+          <SectionState
+            state="empty"
+            title={CATEGORY_MESSAGES.emptyTitle}
+            description={CATEGORY_MESSAGES.emptyDescription}
+          />
         ) : (
           <ul className="grid gap-2">
             {manager.categories.map((category) => (
@@ -61,6 +61,7 @@ export function CategoryManager({ categoryClient }: { categoryClient: CategoryCl
                 isConfirmingDelete={manager.deleteConfirmationId === category.id}
                 isRenaming={manager.pendingAction === CATEGORY_PENDING_ACTIONS.rename(category.id)}
                 isDeleting={manager.pendingAction === CATEGORY_PENDING_ACTIONS.delete(category.id)}
+                editingError={manager.editingId === category.id ? manager.renameNameError : null}
                 onEditingNameChange={manager.setEditingName}
                 onStartRename={() => manager.startRename(category)}
                 onSaveRename={() => manager.renameCategory(category.id)}

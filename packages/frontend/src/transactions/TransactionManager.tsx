@@ -1,4 +1,6 @@
 import type { CategoryClient } from "../categories/categoryClient";
+import { Button } from "../components/Button";
+import { InlineAlert } from "../components/InlineAlert";
 import { TRANSACTION_COPY, TRANSACTION_PENDING_ACTIONS } from "./transactionConstants";
 import { TransactionFiltersForm } from "./TransactionFiltersForm";
 import { TransactionForm } from "./TransactionForm";
@@ -25,13 +27,13 @@ export function TransactionManager({
           <p className="text-sm font-medium text-accent-strong">{TRANSACTION_COPY.eyebrow}</p>
           <h2 className="mt-1 text-2xl font-semibold tracking-normal text-text">{TRANSACTION_COPY.title}</h2>
         </div>
-        <button
+        <Button
           type="button"
-          className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+          variant="primary"
           onClick={manager.startCreate}
         >
           {TRANSACTION_COPY.addTransaction}
-        </button>
+        </Button>
       </div>
 
       <TransactionFiltersForm
@@ -49,6 +51,7 @@ export function TransactionManager({
             form={manager.form}
             setForm={manager.setForm}
             labels={TRANSACTION_COPY.createLabels}
+            validationError={manager.formError}
             saveLabel={TRANSACTION_COPY.saveTransaction}
             isSaving={manager.pendingAction === TRANSACTION_PENDING_ACTIONS.create}
             onSave={manager.saveTransaction}
@@ -58,9 +61,7 @@ export function TransactionManager({
       ) : null}
 
       {manager.error ? (
-        <p className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
-          {manager.error}
-        </p>
+        <InlineAlert className="mt-4">{manager.error}</InlineAlert>
       ) : null}
 
       <TransactionList
@@ -68,6 +69,7 @@ export function TransactionManager({
         transactions={manager.transactions}
         form={manager.form}
         setForm={manager.setForm}
+        formError={manager.formError}
         editingTransaction={manager.editingTransaction}
         deleteConfirmationId={manager.deleteConfirmationId}
         isLoading={manager.isLoadingTransactions}

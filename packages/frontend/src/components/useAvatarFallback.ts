@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function useAvatarFallback(avatarUrl: string | null) {
-  const [hasAvatarError, setHasAvatarError] = useState(false);
-  const shouldShowAvatar = Boolean(avatarUrl && !hasAvatarError);
-
-  useEffect(() => {
-    setHasAvatarError(false);
-  }, [avatarUrl]);
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
+  const shouldShowAvatar = Boolean(avatarUrl && failedAvatarUrl !== avatarUrl);
 
   return {
     shouldShowAvatar,
-    handleAvatarError: () => setHasAvatarError(true)
+    handleAvatarError: () => setFailedAvatarUrl(avatarUrl)
   };
 }

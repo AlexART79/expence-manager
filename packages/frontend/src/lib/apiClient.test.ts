@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ApiClient } from "./apiClient";
+import { ApiClient, ApiError } from "./apiClient";
 
 describe("ApiClient", () => {
   it("requests JSON from paths relative to the configured API base URL", async () => {
@@ -27,6 +27,36 @@ describe("ApiClient", () => {
     const client = new ApiClient("http://localhost:3000", fetcher);
 
     await expect(client.get("/health")).rejects.toThrow("Nope");
+  });
+
+  it("throws a typed API error with status and backend code", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: { code: "DUPLICATE_CATEGORY", message: "Category already exists" } })
+    });
+    const client = new ApiClient("http://localhost:3000", fetcher);
+
+    await expect(client.post("/api/categories", { name: "Food" })).rejects.toMatchObject({
+      name: "ApiError",
+      status: 409,
+      code: "DUPLICATE_CATEGORY",
+      message: "Category already exists"
+    });
+  });
+
+  it("falls back to a stable message when error responses are empty or not JSON", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 502,
+      json: async () => {
+        throw new SyntaxError("Unexpected token <");
+      }
+    });
+    const client = new ApiClient("http://localhost:3000", fetcher);
+
+    await expect(client.get("/api/categories")).rejects.toBeInstanceOf(ApiError);
+    await expect(client.get("/api/categories")).rejects.toThrow("API request failed with status 502");
   });
 
   it("posts JSON with credentials", async () => {

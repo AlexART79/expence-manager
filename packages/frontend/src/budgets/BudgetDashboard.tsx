@@ -1,5 +1,8 @@
 import type { BudgetClient } from "./budgetClient";
+import { Button } from "../components/Button";
 import { ExpandableSection } from "../components/ExpandableSection";
+import { FIELD_CONTROL_CLASS, Field } from "../components/Field";
+import { InlineAlert } from "../components/InlineAlert";
 import { BUDGET_DISPLAY_FORMAT, BUDGET_UI_TEXT } from "./budgetConstants";
 import { formatBudgetCurrency, formatBudgetMonth, formatUsagePercentage } from "./budgetDisplay";
 import { BudgetHeaderSummary } from "./BudgetHeaderSummary";
@@ -68,44 +71,38 @@ export function BudgetDashboard({ budgetClient, refreshKey }: { budgetClient: Bu
       }
       status={
         dashboard.error ? (
-          <p
-            className="mt-4 rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200"
-            role="alert"
-          >
-            {dashboard.error}
-          </p>
+          <InlineAlert className="mt-4">{dashboard.error}</InlineAlert>
         ) : null
       }
     >
       <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(10rem,12rem)_minmax(14rem,1fr)_auto] lg:items-end">
-        <label className="grid gap-2 text-sm font-medium text-text">
-          {BUDGET_UI_TEXT.budgetMonthLabel}
+        <Field label={BUDGET_UI_TEXT.budgetMonthLabel}>
           <input
-            className="field-control field-date min-h-10 w-full rounded-md border border-white/10 bg-surface px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+            className={`${FIELD_CONTROL_CLASS} field-date w-full`}
             type="month"
             value={dashboard.selectedMonth}
             onClick={(event) => openNativeDatePicker(event.currentTarget)}
             onChange={(event) => dashboard.setSelectedMonth(event.target.value)}
           />
-        </label>
-        <label className="grid min-w-0 gap-2 text-sm font-medium text-text">
-          {BUDGET_UI_TEXT.amountLabel}
+        </Field>
+        <Field label={BUDGET_UI_TEXT.amountLabel} error={dashboard.formError?.message}>
           <input
-            className="field-control min-h-10 w-full rounded-md border border-white/10 bg-surface px-3 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40"
+            className={`${FIELD_CONTROL_CLASS} w-full`}
             inputMode="decimal"
             placeholder={BUDGET_UI_TEXT.amountPlaceholder}
             value={dashboard.form.amount}
             onChange={(event) => dashboard.updateAmount(event.target.value)}
           />
-        </label>
-        <button
+        </Field>
+        <Button
           type="button"
-          className="inline-flex min-h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-semibold text-slate-950 transition hover:bg-accent-strong focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
-          disabled={dashboard.isSaving}
+          variant="primary"
+          isLoading={dashboard.isSaving}
+          className="self-start lg:mt-7"
           onClick={dashboard.saveBudget}
         >
           {dashboard.isSaving ? BUDGET_UI_TEXT.saving : BUDGET_UI_TEXT.saveBudget}
-        </button>
+        </Button>
       </div>
 
       <BudgetMetricsGrid metrics={budgetMetrics} />
