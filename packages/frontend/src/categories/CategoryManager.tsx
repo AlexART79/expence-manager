@@ -10,8 +10,14 @@ import { useCategoryManager } from "./useCategoryManager";
 
 const CATEGORY_PANEL_CONTENT_ID = "category-panel-content";
 
-export function CategoryManager({ categoryClient }: { categoryClient: CategoryClient }) {
-  const manager = useCategoryManager(categoryClient);
+export function CategoryManager({
+  categoryClient,
+  onCategoriesChanged
+}: {
+  categoryClient: CategoryClient;
+  onCategoriesChanged?: () => void;
+}) {
+  const manager = useCategoryManager(categoryClient, onCategoriesChanged);
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (

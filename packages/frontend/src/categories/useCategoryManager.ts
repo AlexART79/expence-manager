@@ -3,7 +3,7 @@ import type { Category, CategoryClient } from "./categoryClient";
 import { CATEGORY_MESSAGES, CATEGORY_PENDING_ACTIONS } from "./categoryConstants";
 import { sortCategories } from "./categorySorting";
 
-export function useCategoryManager(categoryClient: CategoryClient) {
+export function useCategoryManager(categoryClient: CategoryClient, onCategoriesChanged?: () => void) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -57,6 +57,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
       setNewName("");
       setError(null);
       setCreateNameError(null);
+      onCategoriesChanged?.();
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : CATEGORY_MESSAGES.createFailed);
     } finally {
@@ -81,6 +82,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
       setEditingName("");
       setError(null);
       setRenameNameError(null);
+      onCategoriesChanged?.();
     } catch (renameError) {
       setError(renameError instanceof Error ? renameError.message : CATEGORY_MESSAGES.renameFailed);
     } finally {
@@ -95,6 +97,7 @@ export function useCategoryManager(categoryClient: CategoryClient) {
       setCategories((current) => current.filter((item) => item.id !== category.id));
       setDeleteConfirmationId(null);
       setError(null);
+      onCategoriesChanged?.();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : CATEGORY_MESSAGES.deleteFailed);
     } finally {

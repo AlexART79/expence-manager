@@ -33,6 +33,7 @@ export function HomePage({
   budgetAlertClient
 }: HomePageProps) {
   const [budgetRefreshKey, setBudgetRefreshKey] = useState(0);
+  const [categoryRefreshKey, setCategoryRefreshKey] = useState(0);
   const budgetAlerts = useBudgetAlerts(budgetAlertClient, Boolean(user));
 
   return (
@@ -42,10 +43,14 @@ export function HomePage({
       <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <BudgetAlertBanners alerts={budgetAlerts.alerts} onDismiss={budgetAlerts.dismissAlert} />
         <BudgetDashboard budgetClient={budgetClient} refreshKey={budgetRefreshKey} />
-        <CategoryManager categoryClient={categoryClient} />
+        <CategoryManager
+          categoryClient={categoryClient}
+          onCategoriesChanged={() => setCategoryRefreshKey((current) => current + 1)}
+        />
         <TransactionManager
           categoryClient={categoryClient}
           transactionClient={transactionClient}
+          categoryRefreshKey={categoryRefreshKey}
           onTransactionsChanged={() => setBudgetRefreshKey((current) => current + 1)}
         />
       </main>

@@ -286,6 +286,42 @@ describe("App shell", () => {
     expect(await screen.findByText("Groceries")).toBeInTheDocument();
   });
 
+  it("makes newly created categories available in the transaction form without reloading", async () => {
+    const user = userEvent.setup();
+    const listCategories = vi
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([
+        { id: 1, name: "Home", createdAt: 123, updatedAt: 123 }
+      ]);
+    const createCategory = vi
+      .fn()
+      .mockResolvedValue({ id: 1, name: "Home", createdAt: 123, updatedAt: 123 });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({ listCategories, createCategory })}
+        transactionClient={createTransactionClient({})}
+      />
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Expand categories" }));
+    const categorySection = screen.getByRole("button", { name: "Collapse categories" }).closest("section");
+    await user.type(await screen.findByLabelText("Category name"), "Home");
+    await user.click(screen.getByRole("button", { name: "Add category" }));
+
+    expect(categorySection).not.toBeNull();
+    expect(await within(categorySection as HTMLElement).findByText("Home")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Add transaction" }));
+
+    const categorySelect = screen.getByLabelText("Category");
+    await waitFor(() => expect(categorySelect).toHaveTextContent("Home"));
+    expect(within(categorySelect).getByRole("option", { name: "Home" })).toHaveValue("1");
+  });
+
   it("renames categories inline and asks for approval before deletion", async () => {
     const user = userEvent.setup();
     const renameCategory = vi.fn().mockResolvedValue({ id: 1, name: "Food", createdAt: 123, updatedAt: 456 });
