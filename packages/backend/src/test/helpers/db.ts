@@ -71,6 +71,19 @@ export function createTestDatabase() {
   `);
   database.db.run(sql`create index monthly_budgets_user_idx on monthly_budgets (user_id)`);
   database.db.run(sql`create unique index monthly_budgets_user_month_idx on monthly_budgets (user_id, month)`);
+  database.db.run(sql`
+    create table budget_alert_states (
+      id integer primary key autoincrement,
+      user_id integer not null references users(id) on delete cascade,
+      month text not null,
+      threshold integer not null,
+      created_at integer not null
+    )
+  `);
+  database.db.run(sql`create index budget_alert_states_user_month_idx on budget_alert_states (user_id, month)`);
+  database.db.run(
+    sql`create unique index budget_alert_states_user_month_threshold_idx on budget_alert_states (user_id, month, threshold)`
+  );
 
   return database;
 }

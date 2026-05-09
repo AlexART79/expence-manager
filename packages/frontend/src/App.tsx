@@ -6,6 +6,8 @@ import type { AuthClient } from "./auth/authClient";
 import { AuthErrorScreen } from "./auth/AuthErrorScreen";
 import { LoginPage } from "./auth/LoginPage";
 import { useAuthSession } from "./auth/useAuthSession";
+import { budgetAlertClient as defaultBudgetAlertClient } from "./budgetAlerts/budgetAlertClient";
+import type { BudgetAlertClient } from "./budgetAlerts/budgetAlertClient";
 import { budgetClient as defaultBudgetClient } from "./budgets/budgetClient";
 import type { BudgetClient } from "./budgets/budgetClient";
 import { categoryClient as defaultCategoryClient } from "./categories/categoryClient";
@@ -22,6 +24,7 @@ type AppProps = {
   categoryClient?: CategoryClient;
   transactionClient?: TransactionClient;
   budgetClient?: BudgetClient;
+  budgetAlertClient?: BudgetAlertClient;
 };
 
 export function App({
@@ -29,7 +32,8 @@ export function App({
   authClient = defaultAuthClient,
   categoryClient = defaultCategoryClient,
   transactionClient = defaultTransactionClient,
-  budgetClient = defaultBudgetClient
+  budgetClient = defaultBudgetClient,
+  budgetAlertClient = defaultBudgetAlertClient
 }: AppProps) {
   const { isDark, setIsDark } = useThemePreference();
   const { route, navigateTo } = useAppRoute();
@@ -72,6 +76,7 @@ export function App({
           categoryClient={categoryClient}
           transactionClient={transactionClient}
           budgetClient={budgetClient}
+          budgetAlertClient={budgetAlertClient}
         />
       )}
     </div>
