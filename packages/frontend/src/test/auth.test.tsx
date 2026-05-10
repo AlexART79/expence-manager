@@ -3,10 +3,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import App from '../App.tsx';
 import * as authLib from '../lib/auth.ts';
+import * as categoriesLib from '../lib/categories.ts';
 
 describe('Auth routing', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(categoriesLib, 'listCategories').mockResolvedValue([]);
   });
 
   it('redirects to /login when not authenticated', async () => {
@@ -39,7 +41,7 @@ describe('Auth routing', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     });
   });
 });

@@ -1,8 +1,9 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, NavLink } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import HomePage from './pages/HomePage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
+import CategoriesPage from './pages/CategoriesPage.tsx';
 import ThemeToggle from './components/ThemeToggle.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 
@@ -12,7 +13,34 @@ function AppShell() {
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-        <h1 className="text-xl font-semibold">Expense Tracker</h1>
+        <div className="flex items-center gap-6">
+          <h1 className="text-xl font-semibold">Expense Tracker</h1>
+          {!loading && user && (
+            <nav className="flex items-center gap-4 text-sm">
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors'
+                }
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/categories"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors'
+                }
+              >
+                Categories
+              </NavLink>
+            </nav>
+          )}
+        </div>
         <div className="flex items-center gap-4">
           {!loading && user && (
             <button
@@ -33,6 +61,14 @@ function AppShell() {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <CategoriesPage />
               </ProtectedRoute>
             }
           />

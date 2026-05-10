@@ -3,10 +3,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import App from '../App.tsx';
 import * as authLib from '../lib/auth.ts';
+import * as categoriesLib from '../lib/categories.ts';
 
 describe('App', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(categoriesLib, 'listCategories').mockResolvedValue([]);
   });
 
   it('renders the app shell header', async () => {
@@ -19,6 +21,26 @@ describe('App', () => {
     );
     await waitFor(() => {
       expect(screen.getByText('Expense Tracker')).toBeInTheDocument();
+    });
+  });
+
+  it('renders CategoriesPage at /categories when authenticated', async () => {
+    vi.spyOn(authLib, 'getCurrentUser').mockResolvedValue({
+      id: 1,
+      email: 'test@example.com',
+      displayName: 'Test User',
+      avatarUrl: null,
+      provider: 'test',
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/categories']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Categories' })).toBeInTheDocument();
     });
   });
 });
