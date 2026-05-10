@@ -20,7 +20,7 @@ describe('App', () => {
       </MemoryRouter>,
     );
     await waitFor(() => {
-      expect(screen.getByText('Expense Tracker')).toBeInTheDocument();
+      expect(screen.getByText('Expence')).toBeInTheDocument();
     });
   });
 

@@ -1,4 +1,5 @@
 import { Routes, Route, NavLink } from 'react-router-dom';
+import { DollarSign, LogOut } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import HomePage from './pages/HomePage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
@@ -11,10 +12,13 @@ function AppShell() {
   const { user, logout, loading } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold">Expense Tracker</h1>
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-dark-base dark:text-dark-text">
+      <header className="h-[52px] sticky top-0 z-10 flex items-center justify-between px-6 bg-white dark:bg-dark-surface border-b border-gray-200 dark:border-dark-border">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-lg flex items-center justify-center">
+            <DollarSign size={16} className="text-white" />
+          </div>
+          <h1 className="text-base font-semibold tracking-tight">Expence</h1>
           {!loading && user && (
             <nav className="flex items-center gap-4 text-sm">
               <NavLink
@@ -22,8 +26,8 @@ function AppShell() {
                 end
                 className={({ isActive }) =>
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors'
+                    ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm'
+                    : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm'
                 }
               >
                 Dashboard
@@ -32,8 +36,8 @@ function AppShell() {
                 to="/categories"
                 className={({ isActive }) =>
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors'
+                    ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm'
+                    : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm'
                 }
               >
                 Categories
@@ -45,15 +49,16 @@ function AppShell() {
           {!loading && user && (
             <button
               onClick={logout}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              aria-label="Sign out"
+              className="p-2 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors"
             >
-              Sign out
+              <LogOut size={18} />
             </button>
           )}
           <ThemeToggle />
         </div>
       </header>
-      <main className="px-6 py-8">
+      <main className="max-w-5xl mx-auto px-5 py-7">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route

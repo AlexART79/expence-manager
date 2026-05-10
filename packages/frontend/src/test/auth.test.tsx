@@ -21,7 +21,7 @@ describe('Auth routing', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Sign in to Expense Tracker')).toBeInTheDocument();
+      expect(screen.getByText('Expence')).toBeInTheDocument();
     });
   });
 

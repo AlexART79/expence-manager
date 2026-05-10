@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Mockup</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #090e0c;
+    color: #e2ede8;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Top Nav ── */
+  .nav {
+    height: 52px;
+    background: #0f1612;
+    border-bottom: 1px solid #1a2820;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 32px;
+    text-decoration: none;
+  }
+  .nav-logo {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .nav-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2ede8;
+    letter-spacing: -0.01em;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+  }
+  .nav-link {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b8f7e;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .nav-link.active {
+    background: #1a2820;
+    color: #34d399;
+  }
+  .nav-link:hover:not(.active) {
+    background: #141c18;
+    color: #a3c9b8;
+  }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #6b8f7e;
+    cursor: pointer;
+    border: 1px solid #1a2820;
+    background: transparent;
+    transition: all .15s;
+  }
+  .nav-btn:hover { background: #141c18; color: #a3c9b8; }
+  .nav-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #0d9488);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  /* ── Page ── */
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e2ede8;
+    letter-spacing: -0.02em;
+  }
+  .period-picker {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #0f1612;
+    border: 1px solid #1a2820;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 13px;
+    color: #a3c9b8;
+    cursor: pointer;
+  }
+  .period-picker .arrow { color: #3d6b57; font-size: 12px; }
+
+  /* ── Stat cards ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: #0f1612;
+    border: 1px solid #1a2820;
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #4d7a66;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e2ede8;
+    letter-spacing: -.03em;
+    line-height: 1;
+  }
+  .stat-value .cents {
+    font-size: 14px;
+    font-weight: 400;
+    color: #4d7a66;
+  }
+  .stat-value.accent { color: #10b981; }
+  .stat-sub {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #4d7a66;
+  }
+  .stat-sub .up { color: #10b981; }
+  .stat-sub .down { color: #f87171; }
+
+  /* ── Middle row ── */
+  .mid-row {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #0f1612;
+    border: 1px solid #1a2820;
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a3c9b8;
+    margin-bottom: 16px;
+    letter-spacing: -.01em;
+  }
+
+  /* ── Category bars ── */
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .cat-row:last-child { margin-bottom: 0; }
+  .cat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cat-name {
+    font-size: 12px;
+    color: #a3c9b8;
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .cat-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: #1a2820;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+  .cat-amount {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2ede8;
+    width: 52px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── Budget progress ── */
+  .budget-row {
+    margin-bottom: 14px;
+  }
+  .budget-row:last-child { margin-bottom: 0; }
+  .budget-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .budget-name { font-size: 12px; color: #a3c9b8; }
+  .budget-numbers { font-size: 11px; color: #4d7a66; }
+  .budget-numbers span { color: #e2ede8; font-weight: 600; }
+  .budget-track {
+    height: 5px;
+    background: #1a2820;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .budget-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .budget-fill.ok { background: #10b981; }
+  .budget-fill.warn { background: #f59e0b; }
+  .budget-fill.over { background: #f87171; }
+
+  /* ── Transactions ── */
+  .txn-list { }
+  .txn-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #141c18;
+  }
+  .txn-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .txn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #1a2820;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .txn-info { flex: 1; min-width: 0; }
+  .txn-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #e2ede8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .txn-cat {
+    font-size: 11px;
+    color: #4d7a66;
+    margin-top: 1px;
+  }
+  .txn-date { font-size: 11px; color: #3d6b57; }
+  .txn-amount {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f87171;
+    flex-shrink: 0;
+  }
+  .txn-amount.income { color: #10b981; }
+
+  /* ── Label callout ── */
+  .mockup-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #10b981;
+    opacity: .7;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mockup-label::before,
+  .mockup-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1a2820;
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a class="nav-brand">
+    <div class="nav-logo">💰</div>
+    <span class="nav-title">Expence</span>
+  </a>
+  <div class="nav-links">
+    <div class="nav-link active">Dashboard</div>
+    <div class="nav-link">Categories</div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn">☀ Light</button>
+    <div class="nav-avatar">A</div>
+    <button class="nav-btn">Sign out</button>
+  </div>
+</nav>
+
+<!-- Page -->
+<div class="page">
+
+  <div class="mockup-label">Dashboard page mockup</div>
+
+  <div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <div class="period-picker">
+      <span class="arrow">‹</span>
+      &nbsp;May 2026&nbsp;
+      <span class="arrow">›</span>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value">$2,480<span class="cents">.00</span></div>
+      <div class="stat-sub"><span class="down">↑ 8%</span> vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Budget Used</div>
+      <div class="stat-value accent">62<span class="cents">%</span></div>
+      <div class="stat-sub">$1,520 remaining</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value">8</div>
+      <div class="stat-sub">2 near limit</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value">23</div>
+      <div class="stat-sub">this month</div>
+    </div>
+  </div>
+
+  <!-- Mid row -->
+  <div class="mid-row">
+
+    <!-- Spending by category -->
+    <div class="card">
+      <div class="card-title">Spending by Category</div>
+      <div class="cat-row">
+        <div class="cat-dot" style="background:#10b981"></div>
+        <div class="cat-name">Food & Dining</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:72%;background:#10b981"></div></div>
+        <div class="cat-amount">$640</div>
+      </div>
+      <div class="cat-row">
+        <div class="cat-dot" style="background:#34d399"></div>
+        <div class="cat-name">Transport</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:24%;background:#34d399"></div></div>
+        <div class="cat-amount">$210</div>
+      </div>
+      <div class="cat-row">
+        <div class="cat-dot" style="background:#6ee7b7"></div>
+        <div class="cat-name">Shopping</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:55%;background:#6ee7b7"></div></div>
+        <div class="cat-amount">$490</div>
+      </div>
+      <div class="cat-row">
+        <div class="cat-dot" style="background:#f59e0b"></div>
+        <div class="cat-name">Utilities</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:18%;background:#f59e0b"></div></div>
+        <div class="cat-amount">$160</div>
+      </div>
+      <div class="cat-row">
+        <div class="cat-dot" style="background:#818cf8"></div>
+        <div class="cat-name">Health</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:42%;background:#818cf8"></div></div>
+        <div class="cat-amount">$370</div>
+      </div>
+      <div class="cat-row">
+        <div class="cat-dot" style="background:#f87171"></div>
+        <div class="cat-name">Other</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:68%;background:#f87171"></div></div>
+        <div class="cat-amount">$610</div>
+      </div>
+    </div>
+
+    <!-- Budget progress -->
+    <div class="card">
+      <div class="card-title">Budget Progress</div>
+
+      <div class="budget-row">
+        <div class="budget-meta">
+          <span class="budget-name">Food & Dining</span>
+          <span class="budget-numbers"><span>$640</span> / $900</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill ok" style="width:71%"></div></div>
+      </div>
+
+      <div class="budget-row">
+        <div class="budget-meta">
+          <span class="budget-name">Shopping</span>
+          <span class="budget-numbers"><span>$490</span> / $500</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill warn" style="width:98%"></div></div>
+      </div>
+
+      <div class="budget-row">
+        <div class="budget-meta">
+          <span class="budget-name">Transport</span>
+          <span class="budget-numbers"><span>$210</span> / $300</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill ok" style="width:70%"></div></div>
+      </div>
+
+      <div class="budget-row">
+        <div class="budget-meta">
+          <span class="budget-name">Health</span>
+          <span class="budget-numbers"><span>$370</span> / $350</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill over" style="width:100%"></div></div>
+      </div>
+
+      <div class="budget-row">
+        <div class="budget-meta">
+          <span class="budget-name">Utilities</span>
+          <span class="budget-numbers"><span>$160</span> / $250</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill ok" style="width:64%"></div></div>
+      </div>
+
+      <div class="budget-row">
+        <div class="budget-meta">
+          <span class="budget-name">Other</span>
+          <span class="budget-numbers"><span>$610</span> / $700</span>
+        </div>
+        <div class="budget-track"><div class="budget-fill warn" style="width:87%"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent transactions -->
+  <div class="card">
+    <div class="card-title">Recent Transactions</div>
+    <div class="txn-list">
+      <div class="txn-row">
+        <div class="txn-icon">🛒</div>
+        <div class="txn-info">
+          <div class="txn-name">Whole Foods Market</div>
+          <div class="txn-cat">Food & Dining</div>
+        </div>
+        <div class="txn-date">May 9</div>
+        <div class="txn-amount">−$84.20</div>
+      </div>
+      <div class="txn-row">
+        <div class="txn-icon">🚗</div>
+        <div class="txn-info">
+          <div class="txn-name">Uber</div>
+          <div class="txn-cat">Transport</div>
+        </div>
+        <div class="txn-date">May 8</div>
+        <div class="txn-amount">−$18.50</div>
+      </div>
+      <div class="txn-row">
+        <div class="txn-icon">💊</div>
+        <div class="txn-info">
+          <div class="txn-name">CVS Pharmacy</div>
+          <div class="txn-cat">Health</div>
+        </div>
+        <div class="txn-date">May 8</div>
+        <div class="txn-amount">−$32.00</div>
+      </div>
+      <div class="txn-row">
+        <div class="txn-icon">☕</div>
+        <div class="txn-info">
+          <div class="txn-name">Blue Bottle Coffee</div>
+          <div class="txn-cat">Food & Dining</div>
+        </div>
+        <div class="txn-date">May 7</div>
+        <div class="txn-amount">−$6.50</div>
+      </div>
+      <div class="txn-row">
+        <div class="txn-icon">🛍</div>
+        <div class="txn-info">
+          <div class="txn-name">Amazon</div>
+          <div class="txn-cat">Shopping</div>
+        </div>
+        <div class="txn-date">May 6</div>
+        <div class="txn-amount">−$124.99</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

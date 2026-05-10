@@ -26,6 +26,6 @@ describe('LoginPage', () => {
 
   it('renders the sign-in heading', () => {
     render(<LoginPage />);
-    expect(screen.getByRole('heading', { name: 'Sign in to Expense Tracker' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Expence' })).toBeInTheDocument();
   });
 });

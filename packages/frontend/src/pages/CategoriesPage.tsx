@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 import {
   listCategories,
   createCategory,
@@ -49,7 +50,7 @@ export default function CategoriesPage() {
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center h-48">
-        <span className="text-gray-400 dark:text-gray-600">Loading...</span>
+        <span className="text-gray-400 dark:text-dark-text-muted">Loading...</span>
       </div>
     );
   }
@@ -63,22 +64,26 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="max-w-lg">
-      <h2 className="text-2xl font-semibold mb-6">Categories</h2>
+    <div className="max-w-2xl">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-dark-text">Categories</h2>
+        <span className="text-sm text-gray-400 dark:text-dark-text-muted">{cats.length} categories</span>
+      </div>
 
-      <form onSubmit={handleCreate} className="flex gap-2 mb-2">
+      <form onSubmit={handleCreate} className="flex gap-2 mb-4">
         <input
           type="text"
           placeholder="Category name"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-surface text-gray-900 dark:text-dark-text placeholder-gray-400 dark:placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
         <button
           type="submit"
           disabled={newName.trim().length === 0}
-          className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
         >
+          <Plus size={18} />
           Add
         </button>
       </form>
@@ -88,13 +93,13 @@ export default function CategoriesPage() {
       )}
 
       {cats.length === 0 ? (
-        <p className="mt-4 text-gray-500 dark:text-gray-400">No categories yet.</p>
+        <p className="mt-4 text-gray-500 dark:text-dark-text-secondary">No categories yet.</p>
       ) : (
-        <ul className="mt-4 space-y-2">
+        <ul className="space-y-2">
           {cats.map((cat) => (
             <li
               key={cat.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-surface"
             >
               {renamingId === cat.id ? (
                 <>
@@ -102,36 +107,40 @@ export default function CategoriesPage() {
                     type="text"
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
-                    className="flex-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 rounded-md border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-raised text-gray-900 dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <button
                     onClick={() => handleRename(cat.id)}
                     disabled={renameValue.trim().length === 0}
-                    className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50 transition-colors"
+                    aria-label="Save"
+                    className="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 transition-colors"
                   >
-                    Save
+                    <Check size={16} />
                   </button>
                   <button
                     onClick={() => { setRenamingId(null); setRenameValue(''); }}
-                    className="px-3 py-1 rounded border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Cancel"
+                    className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors"
                   >
-                    Cancel
+                    <X size={16} />
                   </button>
                 </>
               ) : (
                 <>
-                  <span className="flex-1 text-gray-900 dark:text-gray-100">{cat.name}</span>
+                  <span className="flex-1 text-gray-900 dark:text-dark-text font-medium">{cat.name}</span>
                   <button
                     onClick={() => { setRenamingId(cat.id); setRenameValue(cat.name); }}
-                    className="px-3 py-1 rounded border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Rename"
+                    className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors"
                   >
-                    Rename
+                    <Pencil size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    className="px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+                    aria-label="Delete"
+                    className="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
                   >
-                    Delete
+                    <Trash2 size={16} />
                   </button>
                 </>
               )}

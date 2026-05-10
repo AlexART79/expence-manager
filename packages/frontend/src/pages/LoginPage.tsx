@@ -1,27 +1,42 @@
+import { DollarSign } from 'lucide-react';
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 
 export default function LoginPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-semibold">Sign in to Expense Tracker</h2>
-        <p className="text-gray-500 dark:text-gray-400">Track your spending, stay on budget.</p>
-      </div>
-      <div className="flex flex-col gap-3 w-full max-w-xs">
-        <a
-          href={`${API_BASE}/api/auth/google`}
-          className="flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium"
-        >
-          <GoogleIcon />
-          Continue with Google
-        </a>
-        <a
-          href={`${API_BASE}/api/auth/github`}
-          className="flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium"
-        >
-          <GitHubIcon />
-          Continue with GitHub
-        </a>
+    <div className="min-h-screen bg-dark-base flex items-center justify-center px-5">
+      <div className="w-full max-w-sm bg-dark-surface border border-dark-border rounded-2xl p-8">
+        {/* Logo + Heading */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-lg flex items-center justify-center">
+              <DollarSign size={24} className="text-white" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-dark-text mb-2">Expence</h1>
+          <p className="text-sm text-dark-text-secondary">Track your spending, stay on budget.</p>
+        </div>
+
+        {/* Separator */}
+        <div className="w-full h-px bg-dark-border mb-8" />
+
+        {/* OAuth Buttons */}
+        <div className="space-y-3">
+          <a
+            href={`${API_BASE}/api/auth/google`}
+            className="flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-raised hover:bg-gray-50 dark:hover:bg-dark-surface transition-colors text-sm font-medium text-gray-700 dark:text-dark-text-secondary"
+          >
+            <GoogleIcon />
+            Continue with Google
+          </a>
+          <a
+            href={`${API_BASE}/api/auth/github`}
+            className="flex items-center justify-center gap-3 w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-raised hover:bg-gray-50 dark:hover:bg-dark-surface transition-colors text-sm font-medium text-gray-700 dark:text-dark-text-secondary"
+          >
+            <GitHubIcon />
+            Continue with GitHub
+          </a>
+        </div>
       </div>
     </div>
   );
