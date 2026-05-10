@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { ComponentType } from 'react';
-import { X } from 'lucide-react';
 
 interface ConfirmButtonProps {
   icon: ComponentType<{ size: number }>;
@@ -18,13 +17,12 @@ export default function ConfirmButton({
   onConfirm,
   confirmMessage = 'Are you sure?',
   confirmText = 'Confirm',
-  isDangerous = true,
+  isDangerous = false,
   className = '',
 }: ConfirmButtonProps) {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -57,7 +55,7 @@ export default function ConfirmButton({
 
   if (isConfirming) {
     return (
-      <div ref={containerRef} className="flex items-center gap-2 flex-col">
+      <div className="flex items-center gap-2 flex-col">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700 dark:text-dark-text-secondary">
             {confirmMessage}
@@ -76,8 +74,8 @@ export default function ConfirmButton({
             aria-label={confirmText}
             className={`px-2 py-1 rounded text-xs font-medium text-white transition-colors disabled:opacity-50 ${
               isDangerous
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-emerald-600 hover:bg-emerald-700'
+                ? 'bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
+                : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700'
             }`}
           >
             {isLoading ? 'Loading...' : confirmText}
@@ -94,7 +92,11 @@ export default function ConfirmButton({
     <button
       onClick={() => setIsConfirming(true)}
       aria-label={iconLabel}
-      className={`p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors ${className}`}
+      className={`p-2 rounded-lg text-white transition-colors ${
+        isDangerous
+          ? 'bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
+          : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700'
+      } ${className}`}
     >
       <Icon size={16} />
     </button>
