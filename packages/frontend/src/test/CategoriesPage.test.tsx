@@ -172,6 +172,9 @@ describe('CategoriesPage', () => {
     vi.spyOn(categoriesLib, 'listCategories').mockResolvedValue([
       makeCategory({ id: 8, name: 'Stay Same' }),
     ]);
+    vi.spyOn(categoriesLib, 'renameCategory').mockResolvedValue(
+      makeCategory({ id: 8, name: 'Changed' }),
+    );
 
     renderPage();
     await waitFor(() => expect(screen.getByText('Stay Same')).toBeInTheDocument());
