@@ -668,6 +668,51 @@ describe("App shell", () => {
     expect(await screen.findByText("Lunch")).toBeInTheDocument();
   });
 
+  it("replaces transaction filters with the create form until a transaction is saved", async () => {
+    const user = userEvent.setup();
+    const createTransaction = vi.fn().mockResolvedValue({
+      id: 1,
+      categoryId: 1,
+      title: "Lunch",
+      amount: "12.50",
+      amountCents: 1250,
+      transactionDate: "2026-05-08",
+      notes: null,
+      currency: "USD",
+      createdAt: 123,
+      updatedAt: 123
+    });
+
+    render(
+      <App
+        authClient={createAuthClient({ getCurrentUser: vi.fn().mockResolvedValue(signedInUser) })}
+        categoryClient={createCategoryClient({
+          listCategories: vi.fn().mockResolvedValue([{ id: 1, name: "Food", createdAt: 123, updatedAt: 123 }])
+        })}
+        transactionClient={createTransactionClient({ createTransaction })}
+      />
+    );
+
+    expect(await screen.findByLabelText("Search transactions")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Add transaction" }));
+
+    expect(screen.getByLabelText("Transaction title")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Search transactions")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Filter by category")).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Transaction title"), "Lunch");
+    await user.type(screen.getByLabelText("Amount"), "12.50");
+    await user.type(screen.getByLabelText("Transaction date"), "2026-05-08");
+    await user.selectOptions(screen.getByLabelText("Category"), "1");
+    await user.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    await waitFor(() => expect(createTransaction).toHaveBeenCalled());
+    expect(await screen.findByLabelText("Search transactions")).toBeInTheDocument();
+    expect(screen.getByLabelText("Filter by category")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Transaction title")).not.toBeInTheDocument();
+  });
+
   it("refreshes the monthly budget summary after creating a transaction", async () => {
     const user = userEvent.setup();
     const currentMonth = new Date().toISOString().slice(0, 7);

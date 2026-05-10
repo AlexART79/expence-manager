@@ -38,14 +38,6 @@ export function TransactionManager({
         </Button>
       </div>
 
-      <TransactionFiltersForm
-        categories={manager.categories}
-        filters={manager.filters}
-        isFiltering={manager.pendingAction === TRANSACTION_PENDING_ACTIONS.filter}
-        onFilterChange={manager.updateFilter}
-        onClear={manager.clearFilters}
-      />
-
       {manager.isFormOpen && !manager.editingTransaction ? (
         <div className="mode-transition mt-5 rounded-md border border-line/45 bg-surface-raised p-4 dark:border-line/10 dark:bg-surface">
           <TransactionForm
@@ -60,7 +52,15 @@ export function TransactionManager({
             onCancel={manager.cancelCreate}
           />
         </div>
-      ) : null}
+      ) : (
+        <TransactionFiltersForm
+          categories={manager.categories}
+          filters={manager.filters}
+          isFiltering={manager.pendingAction === TRANSACTION_PENDING_ACTIONS.filter}
+          onFilterChange={manager.updateFilter}
+          onClear={manager.clearFilters}
+        />
+      )}
 
       {manager.error ? (
         <InlineAlert className="mt-4">{manager.error}</InlineAlert>
