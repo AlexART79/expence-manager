@@ -8,6 +8,7 @@ import {
   type Category,
 } from '../lib/categories.ts';
 import { ApiError } from '../lib/apiClient.ts';
+import ConfirmButton from '../components/ConfirmButton.tsx';
 
 export default function CategoriesPage() {
   const [cats, setCats] = useState<Category[]>([]);
@@ -33,11 +34,6 @@ export default function CategoriesPage() {
     } catch (err) {
       setCreateError(err instanceof ApiError ? err.message : 'Failed to create category');
     }
-  }
-
-  async function handleDelete(id: number) {
-    await deleteCategory(id);
-    setCats((prev) => prev.filter((c) => c.id !== id));
   }
 
   async function handleRename(id: number) {
@@ -135,13 +131,16 @@ export default function CategoriesPage() {
                   >
                     <Pencil size={16} />
                   </button>
-                  <button
-                    onClick={() => handleDelete(cat.id)}
-                    aria-label="Delete"
-                    className="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <ConfirmButton
+                    icon={Trash2}
+                    iconLabel="Delete"
+                    onConfirm={async () => {
+                      await deleteCategory(cat.id);
+                      setCats((prev) => prev.filter((c) => c.id !== cat.id));
+                    }}
+                    confirmMessage="Delete this category?"
+                    isDangerous={true}
+                  />
                 </>
               )}
             </li>
