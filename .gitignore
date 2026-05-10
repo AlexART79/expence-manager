@@ -149,3 +149,4 @@ logs/
 packages/backend/data/*.db-shm
 packages/backend/data/*.db-wal
 .vite/
+.claude/settings.local.json
