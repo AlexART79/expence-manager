@@ -64,7 +64,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-dark-text">Categories</h2>
         <span className="text-sm text-gray-400 dark:text-dark-text-muted">{cats.length} categories</span>

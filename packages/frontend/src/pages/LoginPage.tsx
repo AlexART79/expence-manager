@@ -4,7 +4,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-dark-base flex items-center justify-center px-5">
+    <div className="h-screen bg-dark-base flex items-center justify-center px-5">
       <div className="w-full max-w-sm bg-dark-surface border border-dark-border rounded-2xl p-8">
         {/* Logo + Heading */}
         <div className="text-center mb-8">
