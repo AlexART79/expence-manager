@@ -15,6 +15,7 @@ export default function CategoriesPage() {
   const [status, setStatus] = useState<'loading' | 'error' | 'idle'>('loading');
   const [newName, setNewName] = useState('');
   const [createError, setCreateError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
@@ -135,8 +136,13 @@ export default function CategoriesPage() {
                     icon={Trash2}
                     iconLabel="Delete"
                     onConfirm={async () => {
-                      await deleteCategory(cat.id);
-                      setCats((prev) => prev.filter((c) => c.id !== cat.id));
+                      setDeleteError(null);
+                      try {
+                        await deleteCategory(cat.id);
+                        setCats((prev) => prev.filter((c) => c.id !== cat.id));
+                      } catch (err) {
+                        throw err instanceof ApiError ? new Error(err.message) : new Error('Failed to delete category');
+                      }
                     }}
                     confirmMessage="Delete this category?"
                     isDangerous={true}
