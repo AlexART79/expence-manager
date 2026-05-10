@@ -60,7 +60,6 @@ function AppShell() {
       </header>
       <main className="max-w-5xl mx-auto px-5 py-7">
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
           <Route
             path="/"
             element={
@@ -87,7 +86,10 @@ function AppShell() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppShell />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/*" element={<AppShell />} />
+      </Routes>
     </AuthProvider>
   );
 }
