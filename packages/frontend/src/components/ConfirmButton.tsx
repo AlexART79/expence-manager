@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 interface ConfirmButtonProps {
-  icon: ComponentType<{ size: number }>;
+  icon: ComponentType<any>;
   iconLabel: string;
   onConfirm: () => Promise<void>;
   confirmMessage?: string;

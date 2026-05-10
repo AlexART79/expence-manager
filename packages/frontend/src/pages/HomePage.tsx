@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import { listCategories } from '../lib/categories.ts';
-
-type Category = { id: string; name: string; color: string };
+import { listCategories, type Category } from '../lib/categories.ts';
 
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
