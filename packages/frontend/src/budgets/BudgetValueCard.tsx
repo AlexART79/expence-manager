@@ -9,7 +9,7 @@ export function BudgetValueCard({ label, value, tone = "normal", variant = "defa
   const isCompact = variant === "compact";
 
   return (
-    <div className={`rounded-md border border-white/10 bg-surface ${isCompact ? "px-3 py-2" : "p-4"}`}>
+    <div className={`rounded-md border border-line/35 bg-surface-raised dark:border-line/10 dark:bg-surface ${isCompact ? "px-3 py-2" : "p-4"}`}>
       <p
         className={
           isCompact
@@ -21,7 +21,7 @@ export function BudgetValueCard({ label, value, tone = "normal", variant = "defa
       </p>
       <p
         className={`${isCompact ? "mt-1 text-sm" : "mt-2 text-xl"} font-semibold tracking-normal ${
-          tone === "danger" ? "text-red-200" : "text-text"
+          tone === "danger" ? "text-danger" : "text-text"
         }`}
       >
         {value}

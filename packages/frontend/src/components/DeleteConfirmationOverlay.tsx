@@ -15,14 +15,14 @@ export function DeleteConfirmationOverlay({
 }) {
   return (
     <div
-      className="absolute inset-0 z-10 flex flex-col justify-center gap-2 rounded-md border border-red-400/30 bg-surface/95 px-4 py-3 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-end"
+      className="absolute inset-0 z-10 flex flex-col justify-center gap-2 rounded-md border border-danger-border bg-danger-surface/95 px-4 py-3 shadow-sm shadow-danger-border/20 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-end dark:border-danger-border/50 dark:bg-danger-surface/80"
       data-delete-confirmation-overlay
     >
-      <p className="min-w-0 text-sm font-medium text-red-100 sm:mr-auto">{message}</p>
+      <p className="min-w-0 text-sm font-medium text-danger sm:mr-auto">{message}</p>
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
-          className="bg-red-300 text-red-950 hover:bg-red-200 focus:ring-red-200"
+          className="border-danger-border bg-danger-strong text-white hover:bg-danger focus:ring-danger-border dark:bg-danger-strong dark:text-red-950 dark:hover:bg-danger"
           variant="primary"
           size="sm"
           isLoading={isDeleting}

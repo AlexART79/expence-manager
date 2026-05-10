@@ -31,7 +31,7 @@ export function ExpandableSection({
   actionsClassName = "flex items-center gap-3 sm:self-end"
 }: ExpandableSectionProps) {
   return (
-    <section className="rounded-lg border border-white/10 bg-surface-muted p-5 shadow-xl shadow-black/10 sm:p-6">
+    <section className="rounded-lg border border-line/35 bg-surface-muted p-5 shadow-xl shadow-slate-950/10 sm:p-6 dark:border-line/10 dark:shadow-black/10">
       <div className={headerClassName}>
         <div>
           <p className="text-sm font-medium text-accent-strong">{eyebrow}</p>

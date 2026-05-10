@@ -30,7 +30,7 @@ export function CategoryManager({
       collapseLabel={CATEGORY_COPY.collapse}
       onToggle={() => setIsExpanded((current) => !current)}
       actions={
-        <p className="rounded-full border border-white/10 bg-surface px-3 py-1 text-sm text-text-muted">
+        <p className="rounded-full border border-line/35 bg-surface-raised px-3 py-1 text-sm text-text-muted dark:border-line/10 dark:bg-surface">
           {manager.categories.length} {CATEGORY_COPY.activeSuffix}
         </p>
       }

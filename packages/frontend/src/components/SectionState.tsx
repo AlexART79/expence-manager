@@ -6,9 +6,9 @@ export type SectionStateProps = {
 };
 
 const STATE_CLASSES = {
-  loading: "border-white/10 bg-surface text-text-muted",
-  empty: "border-dashed border-white/15 bg-surface text-text",
-  error: "border-red-400/30 bg-red-500/10 text-red-100"
+  loading: "border-line/35 bg-surface-raised text-text-muted dark:border-line/10 dark:bg-surface",
+  empty: "border-dashed border-line/45 bg-surface-raised text-text dark:border-line/15 dark:bg-surface",
+  error: "border-danger-border bg-danger-surface text-danger"
 } as const;
 
 export function SectionState({ state, title, description, className = "" }: SectionStateProps) {

@@ -11,11 +11,11 @@ const VARIANT_CLASSES = {
   primary:
     "bg-accent text-slate-950 hover:bg-accent-strong focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60",
   secondary:
-    "border border-white/10 text-text hover:bg-surface-muted focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60",
+    "border border-line bg-control text-text hover:bg-control-hover focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60 dark:border-line/20",
   danger:
-    "border border-red-400/30 text-red-200 hover:bg-red-500/10 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60",
+    "border border-danger-border bg-danger-surface text-danger hover:bg-danger-surface/80 focus:ring-danger-border disabled:cursor-not-allowed disabled:opacity-60 dark:border-danger-border/50",
   ghostIcon:
-    "border border-white/10 bg-surface text-text hover:border-accent/60 hover:text-accent-strong focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+    "border border-line bg-control text-text hover:border-accent-strong hover:bg-control-hover hover:text-accent-strong focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60 dark:border-line/20"
 } as const;
 
 const SIZE_CLASSES = {

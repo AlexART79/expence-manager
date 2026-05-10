@@ -37,7 +37,7 @@ export function CategoryRow({
 }) {
   return (
     <li
-      className={`mode-transition relative flex flex-col gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 transition-all duration-200 ease-out motion-reduce:transition-none sm:flex-row ${
+      className={`mode-transition relative flex flex-col gap-3 rounded-md border border-line/30 bg-surface-raised px-4 py-3 transition-all duration-200 ease-out motion-reduce:transition-none sm:flex-row dark:border-line/10 dark:bg-surface ${
         isEditing ? "sm:items-end" : "sm:items-center"
       } sm:justify-between`}
     >

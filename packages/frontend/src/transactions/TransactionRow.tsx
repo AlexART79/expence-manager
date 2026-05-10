@@ -43,7 +43,7 @@ export function TransactionRow({
 }) {
   return (
     <li
-      className={`mode-transition relative grid gap-3 rounded-md border border-white/10 bg-surface px-4 py-3 transition-all duration-200 ease-out motion-reduce:transition-none ${
+      className={`mode-transition relative grid gap-3 rounded-md border border-line/30 bg-surface-raised px-4 py-3 transition-all duration-200 ease-out motion-reduce:transition-none dark:border-line/10 dark:bg-surface ${
         isEditing ? "md:grid-cols-1 md:items-end" : "md:grid-cols-[1fr_auto] md:items-center"
       }`}
     >

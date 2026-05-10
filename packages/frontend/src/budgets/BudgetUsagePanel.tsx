@@ -19,16 +19,16 @@ export function BudgetUsagePanel({
   isOverBudget
 }: BudgetUsagePanelProps) {
   return (
-    <div className="mt-5 rounded-md border border-white/10 bg-surface p-4">
+    <div className="mt-5 rounded-md border border-line/35 bg-surface-raised p-4 dark:border-line/10 dark:bg-surface">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="font-medium text-text">{usageLabel}</span>
-        <span className={isOverBudget ? "font-semibold text-red-200" : "font-semibold text-accent-strong"}>
+        <span className={isOverBudget ? "font-semibold text-danger" : "font-semibold text-accent-strong"}>
           {usageValue}
         </span>
       </div>
       <div className="mt-3 h-3 overflow-hidden rounded-full bg-surface-muted">
         <div
-          className={`h-3 rounded-full transition-all ${isOverBudget ? "bg-red-300" : "bg-accent"}`}
+          className={`h-3 rounded-full transition-all ${isOverBudget ? "bg-danger-strong" : "bg-accent"}`}
           style={{ width: getUsageBarWidth(usagePercentage) }}
         />
       </div>

@@ -17,12 +17,12 @@ export function BudgetAlertBanners({
       {alerts.map((alert) => (
         <div
           key={`${alert.month}-${alert.threshold}`}
-          className="mode-transition rounded-md border border-amber-300/40 bg-amber-300/10 px-4 py-3 text-amber-50 shadow-lg shadow-black/10"
+          className="mode-transition rounded-md border border-warning-border bg-warning-surface px-4 py-3 text-warning shadow-lg shadow-slate-950/10 dark:shadow-black/10"
           role="status"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-amber-200">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-warning-strong">
                 {formatBudgetMonth(alert.month)} threshold
               </p>
               <p className="mt-1 text-sm font-semibold text-text">{alert.message}</p>
@@ -33,7 +33,7 @@ export function BudgetAlertBanners({
             <button
               type="button"
               aria-label={`Dismiss ${alert.threshold}% budget alert`}
-              className="inline-flex min-h-9 items-center justify-center rounded-md border border-amber-200/30 px-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-200/10 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-md border border-warning-border bg-control px-3 text-sm font-semibold text-warning transition hover:bg-control-hover focus:outline-none focus:ring-2 focus:ring-warning-border focus:ring-offset-2 dark:bg-transparent dark:focus:ring-offset-slate-950"
               onClick={() => onDismiss(alert)}
             >
               Dismiss

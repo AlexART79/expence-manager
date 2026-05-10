@@ -12,7 +12,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
   const { shouldShowAvatar, handleAvatarError } = useAvatarFallback(user.avatarUrl);
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-surface-muted px-3 py-2">
+    <div className="flex items-center gap-3 rounded-lg border border-line/30 bg-surface-muted px-3 py-2 dark:border-line/10">
       {shouldShowAvatar ? (
         <img
           className="h-9 w-9 rounded-full object-cover"
@@ -35,7 +35,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
       </div>
       <button
         type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/10 px-3 text-sm font-medium text-text transition hover:bg-surface focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+        className="inline-flex min-h-9 items-center justify-center rounded-md border border-line bg-control px-3 text-sm font-medium text-text transition hover:bg-control-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:border-line/20 dark:focus:ring-offset-slate-950"
         onClick={onLogout}
       >
         {USER_MENU_COPY.logout}

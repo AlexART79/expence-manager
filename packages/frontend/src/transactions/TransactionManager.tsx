@@ -23,7 +23,7 @@ export function TransactionManager({
   const manager = useTransactionManager(categoryClient, transactionClient, onTransactionsChanged, categoryRefreshKey);
 
   return (
-    <section className="rounded-lg border border-white/10 bg-surface-muted p-5 shadow-xl shadow-black/10 sm:p-6">
+    <section className="rounded-lg border border-line/35 bg-surface-muted p-5 shadow-xl shadow-slate-950/10 sm:p-6 dark:border-line/10 dark:shadow-black/10">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-accent-strong">{TRANSACTION_COPY.eyebrow}</p>
@@ -47,7 +47,7 @@ export function TransactionManager({
       />
 
       {manager.isFormOpen && !manager.editingTransaction ? (
-        <div className="mode-transition mt-5 rounded-md border border-white/10 bg-surface p-4">
+        <div className="mode-transition mt-5 rounded-md border border-line/45 bg-surface-raised p-4 dark:border-line/10 dark:bg-surface">
           <TransactionForm
             categories={manager.categories}
             form={manager.form}

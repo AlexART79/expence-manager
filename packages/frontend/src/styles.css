@@ -3,12 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --color-surface: 248 250 252;
+  --color-surface: 243 246 249;
   --color-surface-muted: 255 255 255;
+  --color-surface-raised: 248 250 252;
+  --color-line: 100 116 139;
+  --color-line-strong: 51 65 85;
+  --color-control: 255 255 255;
+  --color-control-hover: 241 245 249;
   --color-text: 15 23 42;
   --color-text-muted: 71 85 105;
   --color-accent: 20 184 166;
   --color-accent-strong: 13 148 136;
+  --color-danger: 159 18 57;
+  --color-danger-strong: 136 19 55;
+  --color-danger-surface: 255 241 242;
+  --color-danger-border: 190 18 60;
+  --color-warning: 146 64 14;
+  --color-warning-strong: 120 53 15;
+  --color-warning-surface: 255 251 235;
+  --color-warning-border: 180 83 9;
   font-family:
     Inter,
     ui-sans-serif,
@@ -22,10 +35,23 @@
 .dark {
   --color-surface: 15 23 42;
   --color-surface-muted: 30 41 59;
+  --color-surface-raised: 15 23 42;
+  --color-line: 255 255 255;
+  --color-line-strong: 148 163 184;
+  --color-control: 15 23 42;
+  --color-control-hover: 30 41 59;
   --color-text: 248 250 252;
   --color-text-muted: 203 213 225;
   --color-accent: 45 212 191;
   --color-accent-strong: 94 234 212;
+  --color-danger: 254 202 202;
+  --color-danger-strong: 252 165 165;
+  --color-danger-surface: 127 29 29;
+  --color-danger-border: 248 113 113;
+  --color-warning: 254 240 138;
+  --color-warning-strong: 253 224 71;
+  --color-warning-surface: 113 63 18;
+  --color-warning-border: 251 191 36;
 }
 
 body {
@@ -37,12 +63,12 @@ body {
 }
 
 .field-control--placeholder {
-  color: rgb(var(--color-text-muted) / 0.52);
+  color: rgb(var(--color-text-muted) / 0.78);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgb(var(--color-text-muted) / 0.52) !important;
+  color: rgb(var(--color-text-muted) / 0.78) !important;
 }
 
 .field-select {
