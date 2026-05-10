@@ -23,7 +23,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
         />
       ) : (
         <div
-          className="grid h-9 w-9 place-items-center rounded-full bg-accent text-sm font-bold text-slate-950"
+          className="grid h-9 w-9 place-items-center rounded-full bg-teal-600 text-sm font-bold text-white dark:bg-accent dark:text-slate-950"
           aria-label={USER_MENU_COPY.initialsLabel(user.displayName)}
         >
           {getInitials(user.displayName)}
@@ -35,7 +35,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
       </div>
       <button
         type="button"
-        className="inline-flex min-h-9 items-center justify-center rounded-md border border-line bg-control px-3 text-sm font-medium text-text transition hover:bg-control-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:border-line/20 dark:focus:ring-offset-slate-950"
+        className="inline-flex min-h-9 items-center justify-center rounded-md border border-line bg-control px-3 text-sm font-medium text-text transition hover:bg-control-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:border-white/10 dark:bg-transparent dark:hover:bg-surface dark:focus:ring-offset-slate-950"
         onClick={onLogout}
       >
         {USER_MENU_COPY.logout}

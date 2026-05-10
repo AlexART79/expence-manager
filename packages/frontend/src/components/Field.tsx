@@ -45,7 +45,7 @@ export function FieldMessage({
   return (
     <p
       id={id}
-      className={`text-xs ${tone === "error" ? "text-danger" : "text-text-muted"}`}
+      className={`text-xs ${tone === "error" ? "text-danger dark:text-red-200" : "text-text-muted"}`}
       role={tone === "error" ? "alert" : undefined}
     >
       {children}
@@ -54,7 +54,7 @@ export function FieldMessage({
 }
 
 export const FIELD_CONTROL_CLASS =
-  "field-control min-h-10 rounded-md border border-line bg-control px-3 text-sm outline-none transition focus:border-accent-strong focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger-border aria-[invalid=true]:focus:border-danger-border aria-[invalid=true]:focus:ring-danger-border/30 dark:border-line/20";
+  "field-control min-h-10 rounded-md border border-line bg-control px-3 text-sm outline-none transition focus:border-accent-strong focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger-border aria-[invalid=true]:focus:border-danger-border aria-[invalid=true]:focus:ring-danger-border/30 dark:border-white/10 dark:bg-surface dark:focus:border-accent dark:aria-[invalid=true]:border-red-300/70 dark:aria-[invalid=true]:focus:border-red-300 dark:aria-[invalid=true]:focus:ring-red-300/30";
 
 export const FIELD_CONTROL_MUTED_CLASS =
-  "field-control min-h-10 rounded-md border border-line bg-control px-3 text-sm outline-none transition focus:border-accent-strong focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger-border aria-[invalid=true]:focus:border-danger-border aria-[invalid=true]:focus:ring-danger-border/30 dark:border-line/20";
+  "field-control min-h-10 rounded-md border border-line bg-control px-3 text-sm outline-none transition focus:border-accent-strong focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger-border aria-[invalid=true]:focus:border-danger-border aria-[invalid=true]:focus:ring-danger-border/30 dark:border-white/10 dark:bg-surface-muted dark:focus:border-accent dark:aria-[invalid=true]:border-red-300/70 dark:aria-[invalid=true]:focus:border-red-300 dark:aria-[invalid=true]:focus:ring-red-300/30";

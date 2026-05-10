@@ -8,7 +8,7 @@ export type SectionStateProps = {
 const STATE_CLASSES = {
   loading: "border-line/35 bg-surface-raised text-text-muted dark:border-line/10 dark:bg-surface",
   empty: "border-dashed border-line/45 bg-surface-raised text-text dark:border-line/15 dark:bg-surface",
-  error: "border-danger-border bg-danger-surface text-danger"
+  error: "border-danger-border bg-danger-surface text-danger dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-100"
 } as const;
 
 export function SectionState({ state, title, description, className = "" }: SectionStateProps) {

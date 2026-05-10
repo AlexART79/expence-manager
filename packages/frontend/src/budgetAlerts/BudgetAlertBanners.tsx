@@ -17,12 +17,12 @@ export function BudgetAlertBanners({
       {alerts.map((alert) => (
         <div
           key={`${alert.month}-${alert.threshold}`}
-          className="mode-transition rounded-md border border-warning-border bg-warning-surface px-4 py-3 text-warning shadow-lg shadow-slate-950/10 dark:shadow-black/10"
+          className="mode-transition rounded-md border border-warning-border bg-warning-surface px-4 py-3 text-warning shadow-lg shadow-slate-950/10 dark:border-amber-300/40 dark:bg-amber-300/10 dark:text-amber-50 dark:shadow-black/10"
           role="status"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-warning-strong">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-warning-strong dark:text-amber-200">
                 {formatBudgetMonth(alert.month)} threshold
               </p>
               <p className="mt-1 text-sm font-semibold text-text">{alert.message}</p>
@@ -33,7 +33,7 @@ export function BudgetAlertBanners({
             <button
               type="button"
               aria-label={`Dismiss ${alert.threshold}% budget alert`}
-              className="inline-flex min-h-9 items-center justify-center rounded-md border border-warning-border bg-control px-3 text-sm font-semibold text-warning transition hover:bg-control-hover focus:outline-none focus:ring-2 focus:ring-warning-border focus:ring-offset-2 dark:bg-transparent dark:focus:ring-offset-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-md border border-warning-border bg-control px-3 text-sm font-semibold text-warning transition hover:bg-control-hover focus:outline-none focus:ring-2 focus:ring-warning-border focus:ring-offset-2 dark:border-amber-200/30 dark:bg-transparent dark:text-amber-100 dark:hover:bg-amber-200/10 dark:focus:ring-amber-200 dark:focus:ring-offset-slate-950"
               onClick={() => onDismiss(alert)}
             >
               Dismiss

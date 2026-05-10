@@ -22,13 +22,13 @@ export function BudgetUsagePanel({
     <div className="mt-5 rounded-md border border-line/35 bg-surface-raised p-4 dark:border-line/10 dark:bg-surface">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="font-medium text-text">{usageLabel}</span>
-        <span className={isOverBudget ? "font-semibold text-danger" : "font-semibold text-accent-strong"}>
+        <span className={isOverBudget ? "font-semibold text-danger dark:text-red-200" : "font-semibold text-accent-strong"}>
           {usageValue}
         </span>
       </div>
       <div className="mt-3 h-3 overflow-hidden rounded-full bg-surface-muted">
         <div
-          className={`h-3 rounded-full transition-all ${isOverBudget ? "bg-danger-strong" : "bg-accent"}`}
+          className={`h-3 rounded-full transition-all ${isOverBudget ? "bg-danger-strong dark:bg-red-300" : "bg-accent"}`}
           style={{ width: getUsageBarWidth(usagePercentage) }}
         />
       </div>

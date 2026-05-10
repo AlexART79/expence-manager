@@ -21,7 +21,7 @@ export function BudgetValueCard({ label, value, tone = "normal", variant = "defa
       </p>
       <p
         className={`${isCompact ? "mt-1 text-sm" : "mt-2 text-xl"} font-semibold tracking-normal ${
-          tone === "danger" ? "text-danger" : "text-text"
+          tone === "danger" ? "text-danger dark:text-red-200" : "text-text"
         }`}
       >
         {value}
