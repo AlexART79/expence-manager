@@ -134,6 +134,10 @@ describe('CategoriesPage', () => {
     const row = screen.getByText('To Delete').closest('li')!;
     await user.click(within(row).getByRole('button', { name: /delete/i }));
 
+    // ConfirmButton shows confirmation prompt - click the Confirm button
+    await waitFor(() => expect(screen.getByText('Delete this category?')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: /confirm/i }));
+
     await waitFor(() => {
       expect(categoriesLib.deleteCategory).toHaveBeenCalledWith(5);
       expect(screen.queryByText('To Delete')).not.toBeInTheDocument();
