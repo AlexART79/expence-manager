@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { createTestDb } from './db.js';
 import { users, categories } from '../db/schema/index.js';
+import {
+  listCategories,
+  createCategory,
+  renameCategory,
+  deleteCategory,
+  DuplicateCategoryNameError,
+  CategoryNotFoundError,
+} from '../categories/categoryService.js';
 
 describe('categories table', () => {
   it('can insert and retrieve a category', () => {
@@ -62,6 +70,104 @@ describe('categories table', () => {
         db.insert(categories).values({ userId: u1!.id, name: 'Travel' }).run();
         db.insert(categories).values({ userId: u2!.id, name: 'Travel' }).run();
       }).not.toThrow();
+    } finally {
+      sqlite.close();
+    }
+  });
+});
+
+describe('categoryService', () => {
+  function setup() {
+    const { db, sqlite } = createTestDb();
+    const [user] = db
+      .insert(users)
+      .values({ provider: 'test', providerUserId: 'svc-u1', email: 'svc@test.com', displayName: 'SvcUser', avatarUrl: null })
+      .returning()
+      .all();
+    return { db, sqlite, user: user! };
+  }
+
+  it('listCategories returns empty array for new user', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      expect(listCategories(db, user.id)).toEqual([]);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('createCategory inserts and returns category', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      const cat = createCategory(db, user.id, 'Groceries');
+      expect(cat.id).toBeTypeOf('number');
+      expect(cat.name).toBe('Groceries');
+      expect(cat.userId).toBe(user.id);
+      expect(cat.createdAt).toBeInstanceOf(Date);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('createCategory throws DuplicateCategoryNameError on duplicate', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      createCategory(db, user.id, 'Food');
+      expect(() => createCategory(db, user.id, 'Food')).toThrow(DuplicateCategoryNameError);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('renameCategory updates the name', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      const cat = createCategory(db, user.id, 'Old');
+      const updated = renameCategory(db, user.id, cat.id, 'New');
+      expect(updated.name).toBe('New');
+      expect(updated.id).toBe(cat.id);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('renameCategory throws CategoryNotFoundError for wrong userId', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      const cat = createCategory(db, user.id, 'Mine');
+      expect(() => renameCategory(db, 999, cat.id, 'Stolen')).toThrow(CategoryNotFoundError);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('renameCategory throws DuplicateCategoryNameError on name conflict', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      createCategory(db, user.id, 'Alpha');
+      const beta = createCategory(db, user.id, 'Beta');
+      expect(() => renameCategory(db, user.id, beta.id, 'Alpha')).toThrow(DuplicateCategoryNameError);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('deleteCategory removes the category', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      const cat = createCategory(db, user.id, 'Temp');
+      deleteCategory(db, user.id, cat.id);
+      expect(listCategories(db, user.id)).toHaveLength(0);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('deleteCategory throws CategoryNotFoundError for wrong userId', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      const cat = createCategory(db, user.id, 'Protected');
+      expect(() => deleteCategory(db, 999, cat.id)).toThrow(CategoryNotFoundError);
     } finally {
       sqlite.close();
     }
