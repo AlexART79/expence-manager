@@ -28,6 +28,43 @@ See `packages/frontend/AGENTS.md` and `packages/backend/AGENTS.md` for stack-spe
 - Return consistent error shapes from application boundaries so callers can handle failures predictably.
 - Avoid logging sensitive values such as tokens, passwords, cookies, authorization headers, full user profiles, or private free-text content.
 
+## Deletion & Destructive Actions
+
+**Rule:** All destructive actions (delete, clear, reset) MUST require explicit user confirmation before proceeding. Never implement a delete button that acts immediately.
+
+**Implementation:** Use the `ConfirmButton` component from `packages/frontend/src/components/ConfirmButton.tsx`.
+
+**Example:**
+```tsx
+import ConfirmButton from '../components/ConfirmButton';
+
+<ConfirmButton
+  icon={Trash2}
+  iconLabel="Delete"
+  onConfirm={async () => {
+    await deleteItem(id);
+    setItems(prev => prev.filter(i => i.id !== id));
+  }}
+  confirmMessage="Delete this item?"
+/>
+```
+
+**When to use:** Any action that removes data:
+- Delete categories, transactions, budgets, accounts
+- Clear all data
+- Archive records
+- Reset settings
+
+**Component API:**
+- `icon`: Lucide React icon component
+- `iconLabel`: Aria label for accessibility
+- `onConfirm`: Async function executed on confirmation
+- `confirmMessage`: Optional message shown in confirmation state (default: "Are you sure?")
+- `confirmText`: Optional button text (default: "Confirm")
+- `isDangerous`: If true, uses red styling (default: false)
+
+**Error handling:** If `onConfirm()` throws, the error displays below the buttons. Buttons remain enabled for retry.
+
 ## Stack Rules (Shared)
 
 - Validation stack: Zod.
