@@ -7,6 +7,7 @@ import { healthRouter } from './routes/health.js';
 import { createAuthRouter } from './routes/auth.js';
 import { createCategoriesRouter } from './routes/categories.js';
 import { createTransactionsRouter } from './routes/transactions.js';
+import { createBudgetsRouter } from './routes/budgets.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createSessionMiddleware } from './auth/session.js';
 import { registerStrategies } from './auth/strategies.js';
@@ -29,6 +30,7 @@ export function createApp(db = getDb()): Application {
   app.use('/api/auth', createAuthRouter(db));
   app.use('/api/categories', createCategoriesRouter(db));
   app.use('/api/transactions', createTransactionsRouter(db));
+  app.use('/api/budgets', createBudgetsRouter(db));
 
   app.use((_req, res) => {
     res.status(404).json({
