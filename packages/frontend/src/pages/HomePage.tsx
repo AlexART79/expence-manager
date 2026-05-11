@@ -38,6 +38,36 @@ const CATEGORY_COLORS = [
   '#10b981', '#f59e0b', '#3b82f6', '#14b8a6', '#a855f7',
 ];
 
+function StatCard({
+  label,
+  value,
+  subtext,
+  color,
+  loading,
+}: {
+  label: string;
+  value: React.ReactNode;
+  subtext: React.ReactNode;
+  color?: string;
+  loading: boolean;
+}) {
+  return (
+    <div className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl p-4">
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-dark-text-muted mb-2">
+        {label}
+      </p>
+      {loading ? (
+        <div className="h-8 w-20 bg-gray-100 dark:bg-dark-raised rounded animate-pulse mb-1" />
+      ) : (
+        <p className={`text-2xl font-bold tracking-tight ${color ?? 'text-gray-900 dark:text-dark-text'}`}>
+          {value}
+        </p>
+      )}
+      <div className="text-xs text-gray-400 dark:text-dark-text-muted mt-1">{subtext}</div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -154,34 +184,6 @@ export default function HomePage() {
       ? 'bg-amber-500'
       : 'bg-emerald-500';
 
-  function StatCard({
-    label,
-    value,
-    subtext,
-    color,
-  }: {
-    label: string;
-    value: React.ReactNode;
-    subtext: React.ReactNode;
-    color?: string;
-  }) {
-    return (
-      <div className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl p-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-dark-text-muted mb-2">
-          {label}
-        </p>
-        {loading ? (
-          <div className="h-8 w-20 bg-gray-100 dark:bg-dark-raised rounded animate-pulse mb-1" />
-        ) : (
-          <p className={`text-2xl font-bold tracking-tight ${color ?? 'text-gray-900 dark:text-dark-text'}`}>
-            {value}
-          </p>
-        )}
-        <div className="text-xs text-gray-400 dark:text-dark-text-muted mt-1">{subtext}</div>
-      </div>
-    );
-  }
-
   return (
     <div>
       {/* Header */}
@@ -201,6 +203,7 @@ export default function HomePage() {
           value={`$${totalSpent.toFixed(2)}`}
           subtext="This month"
           color="text-red-600 dark:text-red-400"
+          loading={loading}
         />
         <StatCard
           label="Budget Used"
@@ -218,16 +221,19 @@ export default function HomePage() {
             )
           }
           color={usageColor}
+          loading={loading}
         />
         <StatCard
           label="Categories"
           value={categories.length}
           subtext={`${categories.length} active`}
+          loading={loading}
         />
         <StatCard
           label="Transactions"
           value={transactions.length}
           subtext="This month"
+          loading={loading}
         />
       </div>
 
