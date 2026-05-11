@@ -26,14 +26,18 @@ export function createBudgetsRouter(db: Db): Router {
   router.get(
     '/:month/summary',
     validateRequest({ params: MonthParamsSchema }),
-    (req, res) => {
+    (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({
           error: { code: 'UNAUTHORIZED', message: 'Not authenticated', details: {} },
         });
       }
-      const summary = getBudgetSummary(db, req.user.id, req.params.month as string);
-      return res.json(summary);
+      try {
+        const summary = getBudgetSummary(db, req.user.id, req.params.month as string);
+        return res.json(summary);
+      } catch (err) {
+        next(err);
+      }
     },
   );
 

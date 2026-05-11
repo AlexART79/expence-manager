@@ -42,7 +42,7 @@ async function addTransaction(
   amount: number,
   date: string,
 ) {
-  await fetch(`${url}/api/transactions`, {
+  const res = await fetch(`${url}/api/transactions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: cookie },
     body: JSON.stringify({
@@ -53,6 +53,7 @@ async function addTransaction(
       categoryId,
     }),
   });
+  expect(res.status).toBe(201);
 }
 
 describe('Budgets API', () => {
