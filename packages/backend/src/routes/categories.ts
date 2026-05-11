@@ -8,6 +8,7 @@ import {
   deleteCategory,
   DuplicateCategoryNameError,
   CategoryNotFoundError,
+  CategoryHasTransactionsError,
 } from '../categories/categoryService.js';
 import type { getDb } from '../db/connection.js';
 
@@ -69,6 +70,9 @@ export function createCategoriesRouter(db: Db): Router {
     } catch (err) {
       if (err instanceof CategoryNotFoundError) {
         return res.status(404).json({ error: { code: 'NOT_FOUND', message: err.message, details: {} } });
+      }
+      if (err instanceof CategoryHasTransactionsError) {
+        return res.status(409).json({ error: { code: 'CONFLICT', message: err.message, details: {} } });
       }
       next(err);
     }

@@ -241,4 +241,35 @@ describe('Categories API', () => {
     });
     expect(res.status).toBe(404);
   });
+
+  it('DELETE /api/categories/:id returns 409 when category has transactions', async () => {
+    const { cookie } = await loginAs(server.url, 'pete@example.com', 'Pete');
+
+    const catRes = await fetch(`${server.url}/api/categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ name: 'WithTx' }),
+    });
+    const cat = (await catRes.json()) as { id: number };
+
+    await fetch(`${server.url}/api/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({
+        title: 'Blocking Tx',
+        amount: 10,
+        currency: 'USD',
+        transactionDate: '2026-05-01',
+        categoryId: cat.id,
+      }),
+    });
+
+    const res = await fetch(`${server.url}/api/categories/${cat.id}`, {
+      method: 'DELETE',
+      headers: { Cookie: cookie },
+    });
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe('CONFLICT');
+  });
 });

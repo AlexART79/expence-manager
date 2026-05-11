@@ -1,5 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import { categories } from '../db/schema/index.js';
+import { categories, transactions } from '../db/schema/index.js';
 import type { getDb } from '../db/connection.js';
 
 type Db = ReturnType<typeof getDb>;
@@ -23,6 +23,13 @@ export class CategoryNotFoundError extends Error {
   constructor() {
     super('Category not found');
     this.name = 'CategoryNotFoundError';
+  }
+}
+
+export class CategoryHasTransactionsError extends Error {
+  constructor() {
+    super('Cannot delete category: it has associated transactions');
+    this.name = 'CategoryHasTransactionsError';
   }
 }
 
@@ -75,6 +82,11 @@ export function deleteCategory(db: Db, userId: number, categoryId: number): void
     .where(and(eq(categories.id, categoryId), eq(categories.userId, userId)))
     .get();
   if (!existing) throw new CategoryNotFoundError();
+
+  const txns = db.select().from(transactions)
+    .where(eq(transactions.categoryId, categoryId))
+    .all();
+  if (txns.length > 0) throw new CategoryHasTransactionsError();
 
   db.delete(categories)
     .where(and(eq(categories.id, categoryId), eq(categories.userId, userId)))

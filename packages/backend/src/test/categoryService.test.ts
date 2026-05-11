@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createTestDb } from './db.js';
-import { users, categories } from '../db/schema/index.js';
+import { users, categories, transactions } from '../db/schema/index.js';
 import {
   listCategories,
   createCategory,
@@ -8,6 +8,7 @@ import {
   deleteCategory,
   DuplicateCategoryNameError,
   CategoryNotFoundError,
+  CategoryHasTransactionsError,
 } from '../categories/categoryService.js';
 
 describe('categories table', () => {
@@ -168,6 +169,25 @@ describe('categoryService', () => {
     try {
       const cat = createCategory(db, user.id, 'Protected');
       expect(() => deleteCategory(db, 999, cat.id)).toThrow(CategoryNotFoundError);
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it('deleteCategory throws CategoryHasTransactionsError when transactions exist', () => {
+    const { db, sqlite, user } = setup();
+    try {
+      const cat = createCategory(db, user.id, 'Food');
+      db.insert(transactions).values({
+        userId: user.id,
+        categoryId: cat.id,
+        title: 'Groceries',
+        amount: 45.50,
+        currency: 'USD',
+        transactionDate: '2026-05-01',
+        notes: null,
+      }).run();
+      expect(() => deleteCategory(db, user.id, cat.id)).toThrow(CategoryHasTransactionsError);
     } finally {
       sqlite.close();
     }
