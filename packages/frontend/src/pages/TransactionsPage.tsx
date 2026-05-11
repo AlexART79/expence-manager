@@ -7,7 +7,6 @@ import {
   deleteTransaction,
   type Transaction,
   type TransactionInput,
-  type TransactionFilters,
 } from '../lib/transactions.ts';
 import { listCategories, type Category } from '../lib/categories.ts';
 import { ApiError } from '../lib/apiClient.ts';
@@ -18,15 +17,14 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [status, setStatus] = useState<'loading' | 'error' | 'idle'>('loading');
-  const [filters, setFilters] = useState<TransactionFilters>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  // Load transactions and categories on mount and when filters change
+  // Load transactions and categories on mount
   useEffect(() => {
     setStatus('loading');
     Promise.all([
-      listTransactions(filters),
+      listTransactions({}),
       listCategories(),
     ])
       .then(([txns, cats]) => {
@@ -35,7 +33,7 @@ export default function TransactionsPage() {
         setStatus('idle');
       })
       .catch(() => setStatus('error'));
-  }, [filters]);
+  }, []);
 
   function handleCreate() {
     setEditingTransaction(null);
@@ -79,18 +77,6 @@ export default function TransactionsPage() {
         err instanceof ApiError ? err.message : 'Failed to delete transaction';
       throw new Error(message);
     }
-  }
-
-  function handleFilterChange(key: keyof TransactionFilters, value: string | number | undefined) {
-    setFilters((prev) => {
-      const updated = { ...prev };
-      if (value === undefined || value === '' || value === 0) {
-        delete updated[key];
-      } else {
-        (updated[key] as string | number) = value;
-      }
-      return updated;
-    });
   }
 
   if (status === 'loading') {
