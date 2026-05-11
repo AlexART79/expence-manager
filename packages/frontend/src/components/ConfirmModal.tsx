@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ConfirmModalProps {
   message: string;
@@ -19,13 +19,17 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const onCancelRef = useRef(onCancel);
+  const isLoadingRef = useRef(isLoading);
+  useEffect(() => { onCancelRef.current = onCancel; });
+  useEffect(() => { isLoadingRef.current = isLoading; });
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isLoadingRef.current) onCancelRef.current();
     };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel]);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   return (
     <div
@@ -36,6 +40,7 @@ export default function ConfirmModal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-label="Confirmation"
         className="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-sm w-full p-6"
         onClick={(e) => e.stopPropagation()}
       >
@@ -47,6 +52,7 @@ export default function ConfirmModal({
           <button
             onClick={onCancel}
             disabled={isLoading}
+            autoFocus
             className="px-4 py-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised disabled:opacity-50 transition-colors"
           >
             Cancel

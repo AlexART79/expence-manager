@@ -56,6 +56,13 @@ describe('ConfirmModal', () => {
     expect(props.onCancel).toHaveBeenCalledOnce();
   });
 
+  it('does not call onCancel via Escape while loading', async () => {
+    const user = userEvent.setup();
+    const { props } = renderModal({ isLoading: true });
+    await user.keyboard('{Escape}');
+    expect(props.onCancel).not.toHaveBeenCalled();
+  });
+
   it('shows custom confirmText', () => {
     renderModal({ confirmText: 'Yes, delete it' });
     expect(screen.getByRole('button', { name: /yes, delete it/i })).toBeInTheDocument();
