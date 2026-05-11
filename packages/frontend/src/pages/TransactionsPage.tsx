@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import {
   listTransactions,
   createTransaction,
@@ -11,7 +12,7 @@ import {
 import { listCategories, type Category } from '../lib/categories.ts';
 import { ApiError } from '../lib/apiClient.ts';
 import TransactionForm from '../components/TransactionForm.tsx';
-import './TransactionsPage.css';
+import ConfirmButton from '../components/ConfirmButton.tsx';
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -20,8 +21,6 @@ export default function TransactionsPage() {
   const [filters, setFilters] = useState<TransactionFilters>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Load transactions and categories on mount and when filters change
   useEffect(() => {
@@ -73,14 +72,12 @@ export default function TransactionsPage() {
 
   async function handleDelete(id: number) {
     try {
-      setDeleteError(null);
       await deleteTransaction(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
-      setDeleteConfirmId(null);
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Failed to delete transaction';
-      setDeleteError(message);
+      throw new Error(message);
     }
   }
 
@@ -98,80 +95,125 @@ export default function TransactionsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="transactions-page">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center h-48">
+        <span className="text-gray-400 dark:text-dark-text-muted">Loading...</span>
       </div>
     );
   }
 
   if (status === 'error') {
     return (
-      <div className="transactions-page">
-        <p>Failed to load transactions</p>
+      <div className="py-8 text-center text-red-600 dark:text-red-400">
+        Failed to load transactions. Please refresh the page.
       </div>
     );
   }
 
   return (
-    <div className="transactions-page">
-      <div className="transactions-header">
-        <h1>Transactions</h1>
-        <button className="btn btn-primary" onClick={handleCreate}>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-dark-text">
+          Transactions
+        </h1>
+        <button
+          onClick={handleCreate}
+          className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium transition-colors flex items-center gap-2"
+        >
+          <Plus size={18} />
           Add Transaction
         </button>
       </div>
 
-      <div className="transactions-content">
-        {transactions.length === 0 ? (
-          <p className="no-transactions">No transactions yet</p>
-        ) : (
-          <table className="transactions-table">
+      {transactions.length === 0 ? (
+        <p className="mt-4 text-gray-500 dark:text-dark-text-secondary">
+          No transactions yet
+        </p>
+      ) : (
+        <div className="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-dark-border shadow-sm overflow-x-auto">
+          <table className="w-full border-collapse">
             <thead>
-              <tr>
-                <th>Title</th>
-                <th>Amount</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Actions</th>
+              <tr className="border-b border-gray-200 dark:border-dark-border">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-dark-text">
+                  Title
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-dark-text">
+                  Amount
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-dark-text">
+                  Category
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-dark-text">
+                  Date
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-dark-text">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {transactions.map((tx) => {
                 const category = categories.find((c) => c.id === tx.categoryId);
                 return (
-                  <tr key={tx.id}>
-                    <td>{tx.title}</td>
-                    <td>
+                  <tr
+                    key={tx.id}
+                    className="border-b border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-dark-text">
+                      {tx.title}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-dark-text">
                       {tx.currency} {tx.amount.toFixed(2)}
                     </td>
-                    <td>{category?.name || 'Unknown'}</td>
-                    <td>{tx.transactionDate}</td>
-                    <td>
-                      <button
-                        className="btn btn-small"
-                        onClick={() => handleEdit(tx)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-small btn-danger"
-                        onClick={() => setDeleteConfirmId(tx.id)}
-                      >
-                        Delete
-                      </button>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-dark-text">
+                      {category?.name || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-dark-text">
+                      {tx.transactionDate}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(tx)}
+                          aria-label="Edit"
+                          className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <ConfirmButton
+                          icon={Trash2}
+                          iconLabel="Delete"
+                          onConfirm={async () => {
+                            try {
+                              await handleDelete(tx.id);
+                            } catch (err) {
+                              throw err instanceof Error ? err : new Error('Failed to delete transaction');
+                            }
+                          }}
+                          confirmMessage="Delete this transaction?"
+                          isDangerous={true}
+                        />
+                      </div>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
       {formOpen && (
-        <div className="modal-overlay" onClick={() => setFormOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>{editingTransaction ? 'Edit Transaction' : 'New Transaction'}</h2>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setFormOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold text-gray-900 dark:text-dark-text mb-4">
+              {editingTransaction ? 'Edit Transaction' : 'New Transaction'}
+            </h2>
             <TransactionForm
               transaction={editingTransaction || undefined}
               categories={categories}
@@ -181,30 +223,6 @@ export default function TransactionsPage() {
                 setEditingTransaction(null);
               }}
             />
-          </div>
-        </div>
-      )}
-
-      {deleteConfirmId !== null && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirmId(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Delete this transaction?</h2>
-            {deleteError && <div className="error-message">{deleteError}</div>}
-            <p>This action cannot be undone.</p>
-            <div className="form-actions">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setDeleteConfirmId(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={() => handleDelete(deleteConfirmId)}
-              >
-                Confirm
-              </button>
-            </div>
           </div>
         </div>
       )}
