@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
 import ConfirmModal from './ConfirmModal.tsx';
 
 interface ConfirmButtonProps {
-  icon: LucideIcon;
+  icon: ComponentType<{ size?: number | string }>;
   iconLabel: string;
   onConfirm: () => Promise<void>;
   confirmMessage?: string;

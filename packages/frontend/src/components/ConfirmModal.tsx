@@ -35,7 +35,7 @@ export default function ConfirmModal({
     <div
       data-testid="confirm-modal-backdrop"
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={onCancel}
+      onClick={isLoading ? undefined : onCancel}
     >
       <div
         role="dialog"
