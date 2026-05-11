@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
 import CategoriesPage from './pages/CategoriesPage.tsx';
+import TransactionsPage from './pages/TransactionsPage.tsx';
 import ThemeToggle from './components/ThemeToggle.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 
@@ -42,6 +43,16 @@ function AppShell() {
               >
                 Categories
               </NavLink>
+              <NavLink
+                to="/transactions"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm'
+                    : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm'
+                }
+              >
+                Transactions
+              </NavLink>
             </nav>
           )}
         </div>
@@ -73,6 +84,14 @@ function AppShell() {
             element={
               <ProtectedRoute>
                 <CategoriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <TransactionsPage />
               </ProtectedRoute>
             }
           />
