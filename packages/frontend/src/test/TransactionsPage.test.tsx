@@ -1,157 +1,266 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { vi } from "vitest";
-import TransactionsPage from "../pages/TransactionsPage";
-import { TransactionsProvider } from "../context/TransactionsContext";
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import TransactionsPage from '../pages/TransactionsPage.tsx';
+import * as txLib from '../lib/transactions.ts';
+import * as catLib from '../lib/categories.ts';
+import type { Transaction } from '../lib/transactions.ts';
+import type { Category } from '../lib/categories.ts';
+import { ApiError } from '../lib/apiClient.ts';
 
-const mockTransactions = [
-  {
-    id: "1",
-    description: "Groceries",
-    amount: 50.0,
-    category: "food",
-    date: "2024-01-15",
-    type: "expense",
-  },
-  {
-    id: "2",
-    description: "Salary",
-    amount: 2000.0,
-    category: "income",
-    date: "2024-01-14",
-    type: "income",
-  },
-  {
-    id: "3",
-    description: "Gas",
-    amount: 40.0,
-    category: "transport",
-    date: "2024-01-13",
-    type: "expense",
-  },
-];
+function makeCategory(overrides: Partial<Category> = {}): Category {
+  return {
+    id: 1,
+    userId: 42,
+    name: 'Food',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
 
-const renderTransactionsPage = () =>
-  render(
-    <TransactionsProvider>
+function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
+  return {
+    id: 1,
+    userId: 42,
+    categoryId: 1,
+    title: 'Groceries',
+    amount: 45.5,
+    currency: 'USD',
+    transactionDate: '2026-05-01',
+    notes: null,
+    createdAt: '2026-05-01T00:00:00.000Z',
+    updatedAt: '2026-05-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
       <TransactionsPage />
-    </TransactionsProvider>
+    </MemoryRouter>,
   );
+}
 
-describe("TransactionsPage", () => {
+describe('TransactionsPage', () => {
   beforeEach(() => {
-    localStorage.clear();
-    localStorage.setItem("transactions", JSON.stringify(mockTransactions));
+    vi.restoreAllMocks();
+    vi.spyOn(catLib, 'listCategories').mockResolvedValue([makeCategory()]);
   });
 
-  it("renders the page title and buttons", () => {
-    renderTransactionsPage();
-    expect(screen.getByText("Transactions")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /add transaction/i })).toBeInTheDocument();
+  it('shows loading state while fetching', () => {
+    vi.spyOn(txLib, 'listTransactions').mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it("displays transactions list", () => {
-    renderTransactionsPage();
-    expect(screen.getByText("Groceries")).toBeInTheDocument();
-    expect(screen.getByText("Salary")).toBeInTheDocument();
-    expect(screen.getByText("Gas")).toBeInTheDocument();
-    // Amounts are rendered with +/- signs
-    expect(screen.getByText(/-\$50\.00/)).toBeInTheDocument();
-    expect(screen.getByText(/\+\$2,000\.00/)).toBeInTheDocument();
-  });
-
-  it("shows 'No transactions' when list is empty", () => {
-    localStorage.clear();
-    localStorage.setItem("transactions", JSON.stringify([]));
-    renderTransactionsPage();
-    expect(screen.getByText("No transactions yet")).toBeInTheDocument();
-  });
-
-  it("opens add transaction modal on button click", async () => {
-    renderTransactionsPage();
-    const addButton = screen.getByRole("button", { name: /add transaction/i });
-    await userEvent.click(addButton);
-    expect(screen.getByPlaceholderText("Description")).toBeInTheDocument();
-  });
-
-  it("filters transactions by type", async () => {
-    renderTransactionsPage();
-    const expenseButton = screen.getByRole("button", { name: /expense/i });
-    await userEvent.click(expenseButton);
-    expect(screen.getByText("Groceries")).toBeInTheDocument();
-    expect(screen.getByText("Gas")).toBeInTheDocument();
-    expect(screen.queryByText("Salary")).not.toBeInTheDocument();
-  });
-
-  it("filters transactions by category", async () => {
-    renderTransactionsPage();
-    const categorySelect = screen.getByDisplayValue("All Categories");
-    await userEvent.selectOptions(categorySelect, "food");
-    expect(screen.getByText("Groceries")).toBeInTheDocument();
-    expect(screen.queryByText("Salary")).not.toBeInTheDocument();
-    expect(screen.queryByText("Gas")).not.toBeInTheDocument();
-  });
-
-  it("filters transactions by date range", async () => {
-    renderTransactionsPage();
-    const startDateInput = screen.getByDisplayValue("2024-01-13");
-    await userEvent.clear(startDateInput);
-    await userEvent.type(startDateInput, "2024-01-14");
+  it('shows empty state when there are no transactions', async () => {
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);
+    renderPage();
     await waitFor(() => {
-      expect(screen.getByText("Salary")).toBeInTheDocument();
-      expect(screen.queryByText("Gas")).not.toBeInTheDocument();
+      expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument();
     });
   });
 
-  it("adds a new transaction", async () => {
-    renderTransactionsPage();
-    const addButton = screen.getByRole("button", { name: /add transaction/i });
-    await userEvent.click(addButton);
-
-    const descInput = screen.getByPlaceholderText("Description");
-    const amountInput = screen.getByPlaceholderText("Amount");
-    const submitButton = screen.getByRole("button", { name: /save/i });
-
-    await userEvent.type(descInput, "New Expense");
-    await userEvent.type(amountInput, "75.50");
-    await userEvent.click(submitButton);
-
+  it('shows error state when fetch fails', async () => {
+    vi.spyOn(txLib, 'listTransactions').mockRejectedValue(new Error('Network error'));
+    renderPage();
     await waitFor(() => {
-      expect(screen.getByText("New Expense")).toBeInTheDocument();
-      // The amount is rendered with a minus sign for expenses
-      expect(screen.getByText(/\$75\.50/)).toBeInTheDocument();
+      expect(screen.getByText(/failed to load transactions/i)).toBeInTheDocument();
     });
   });
 
-  it("deletes a transaction", async () => {
-    renderTransactionsPage();
-    const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
-    await userEvent.click(deleteButtons[0]);
-
-    const confirmButton = screen.getByRole("button", { name: /confirm/i });
-    await userEvent.click(confirmButton);
-
+  it('renders a list of transactions', async () => {
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([
+      makeTransaction({
+        id: 1,
+        title: 'Groceries',
+        amount: 45.5,
+        transactionDate: '2026-05-01',
+      }),
+      makeTransaction({
+        id: 2,
+        title: 'Gas Station',
+        amount: 52.0,
+        transactionDate: '2026-05-02',
+      }),
+    ]);
+    renderPage();
     await waitFor(() => {
-      expect(screen.queryByText("Groceries")).not.toBeInTheDocument();
+      expect(screen.getByText('Groceries')).toBeInTheDocument();
+      expect(screen.getByText('Gas Station')).toBeInTheDocument();
+      expect(screen.getByText('USD 45.50')).toBeInTheDocument();
+      expect(screen.getByText('USD 52.00')).toBeInTheDocument();
     });
   });
 
-  it("displays loading state", () => {
-    renderTransactionsPage();
-    // The component should load transactions from localStorage
-    expect(screen.getByText("Transactions")).toBeInTheDocument();
+  it('opens create form when "Add Transaction" is clicked', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);
+    renderPage();
+    await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+
+    expect(screen.getByRole('heading', { name: /new transaction/i })).toBeInTheDocument();
+    expect(screen.getByLabelText('Title')).toBeInTheDocument();
+    expect(screen.getByLabelText('Amount')).toBeInTheDocument();
+    expect(screen.getByLabelText('Date')).toBeInTheDocument();
+    expect(screen.getByLabelText('Category')).toBeInTheDocument();
   });
 
-  it("displays error message if transaction fails", async () => {
-    renderTransactionsPage();
-    // Simulate an error by attempting invalid input
-    const addButton = screen.getByRole("button", { name: /add transaction/i });
-    await userEvent.click(addButton);
+  it('creates a transaction and adds it to the list', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);
+    vi.spyOn(catLib, 'listCategories').mockResolvedValue([makeCategory({ id: 1, name: 'Food' })]);
+    vi.spyOn(txLib, 'createTransaction').mockResolvedValue(
+      makeTransaction({ id: 10, title: 'New Expense', amount: 30, categoryId: 1 }),
+    );
 
-    const submitButton = screen.getByRole("button", { name: /save/i });
-    await userEvent.click(submitButton);
+    renderPage();
+    await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
 
-    // The form should still be open if validation fails
-    expect(screen.getByPlaceholderText("Description")).toBeInTheDocument();
+    // Click the header button to open the form
+    const headerButton = screen.getAllByRole('button', { name: /add transaction/i })[0];
+    await user.click(headerButton);
+
+    await user.clear(screen.getByLabelText('Title'));
+    await user.type(screen.getByLabelText('Title'), 'New Expense');
+    await user.clear(screen.getByLabelText('Amount'));
+    await user.type(screen.getByLabelText('Amount'), '30');
+    await user.selectOptions(screen.getByLabelText('Category'), '1');
+
+    // Find the form submit button (not the header button)
+    const submitButtons = screen.getAllByRole('button', { name: /add transaction/i });
+    await user.click(submitButtons[submitButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(txLib.createTransaction).toHaveBeenCalled();
+      expect(screen.getByText('New Expense')).toBeInTheDocument();
+    });
+  });
+
+  it('shows validation error when title is empty on submit', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
+
+    // Click the header button to open the form
+    const headerButton = screen.getAllByRole('button', { name: /add transaction/i })[0];
+    await user.click(headerButton);
+
+    // Find the submit button in the form (should be the second one now)
+    const submitButtons = screen.getAllByRole('button', { name: /add transaction/i });
+    await user.click(submitButtons[submitButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Title is required')).toBeInTheDocument();
+    });
+  });
+
+  it('opens edit form pre-populated with transaction data', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([
+      makeTransaction({
+        id: 5,
+        title: 'Coffee',
+        amount: 5.5,
+        transactionDate: '2026-05-05',
+        categoryId: 1,
+      }),
+    ]);
+    vi.spyOn(catLib, 'listCategories').mockResolvedValue([makeCategory({ id: 1, name: 'Food' })]);
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('Coffee')).toBeInTheDocument());
+
+    const row = screen.getByText('Coffee').closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: /edit/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /edit transaction/i })).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Coffee')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('5.5')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('2026-05-05')).toBeInTheDocument();
+    });
+  });
+
+  it('updates a transaction and reflects change in list', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([
+      makeTransaction({ id: 7, title: 'Old Title', amount: 20, categoryId: 1 }),
+    ]);
+    vi.spyOn(catLib, 'listCategories').mockResolvedValue([makeCategory({ id: 1, name: 'Food' })]);
+    vi.spyOn(txLib, 'updateTransaction').mockResolvedValue(
+      makeTransaction({ id: 7, title: 'New Title', amount: 20, categoryId: 1 }),
+    );
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('Old Title')).toBeInTheDocument());
+
+    const row = screen.getByText('Old Title').closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: /edit/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /edit transaction/i })).toBeInTheDocument(),
+    );
+
+    const titleInput = screen.getByDisplayValue('Old Title');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'New Title');
+
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(txLib.updateTransaction).toHaveBeenCalledWith(
+        7,
+        expect.objectContaining({ title: 'New Title' }),
+      );
+      expect(screen.getByText('New Title')).toBeInTheDocument();
+      expect(screen.queryByText('Old Title')).not.toBeInTheDocument();
+    });
+  });
+
+  it('closes form when Cancel is clicked', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /new transaction/i })).toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByRole('button', { name: /cancel/i }));
+
+    expect(screen.queryByRole('heading', { name: /new transaction/i })).not.toBeInTheDocument();
+  });
+
+  it('deletes a transaction and removes it from the list', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(txLib, 'listTransactions').mockResolvedValue([
+      makeTransaction({ id: 9, title: 'To Delete', categoryId: 1 }),
+    ]);
+    vi.spyOn(txLib, 'deleteTransaction').mockResolvedValue(undefined);
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('To Delete')).toBeInTheDocument());
+
+    const row = screen.getByText('To Delete').closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: /delete/i }));
+
+    await waitFor(() => expect(screen.getByText('Delete this transaction?')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: /confirm/i }));
+
+    await waitFor(() => {
+      expect(txLib.deleteTransaction).toHaveBeenCalledWith(9);
+      expect(screen.queryByText('To Delete')).not.toBeInTheDocument();
+    });
   });
 });

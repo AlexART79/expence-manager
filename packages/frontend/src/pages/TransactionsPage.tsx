@@ -1,161 +1,210 @@
-import { useState, useEffect } from "react";
-import { useTransactions } from "../context/TransactionsContext";
-import TransactionForm from "../components/TransactionForm";
-import TransactionList from "../components/TransactionList";
-import ConfirmButton from "../components/ConfirmButton";
-import "./TransactionsPage.css";
-
-interface FilterState {
-  type: "all" | "income" | "expense";
-  category: string;
-  startDate: string;
-  endDate: string;
-}
+import { useState, useEffect } from 'react';
+import {
+  listTransactions,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
+  type Transaction,
+  type TransactionInput,
+  type TransactionFilters,
+} from '../lib/transactions.ts';
+import { listCategories, type Category } from '../lib/categories.ts';
+import { ApiError } from '../lib/apiClient.ts';
+import TransactionForm from '../components/TransactionForm.tsx';
+import './TransactionsPage.css';
 
 export default function TransactionsPage() {
-  const { transactions, addTransaction, deleteTransaction } = useTransactions();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    type: "all",
-    category: "All Categories",
-    startDate: "2024-01-13",
-    endDate: new Date().toISOString().split("T")[0],
-  });
-  const [filteredTransactions, setFilteredTransactions] = useState(transactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [status, setStatus] = useState<'loading' | 'error' | 'idle'>('loading');
+  const [filters, setFilters] = useState<TransactionFilters>({});
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Load transactions and categories on mount and when filters change
   useEffect(() => {
-    let filtered = transactions;
+    setStatus('loading');
+    Promise.all([
+      listTransactions(filters),
+      listCategories(),
+    ])
+      .then(([txns, cats]) => {
+        setTransactions(txns);
+        setCategories(cats);
+        setStatus('idle');
+      })
+      .catch(() => setStatus('error'));
+  }, [filters]);
 
-    // Filter by type
-    if (filters.type !== "all") {
-      filtered = filtered.filter((t) => t.type === filters.type);
+  function handleCreate() {
+    setEditingTransaction(null);
+    setFormOpen(true);
+  }
+
+  function handleEdit(transaction: Transaction) {
+    setEditingTransaction(transaction);
+    setFormOpen(true);
+  }
+
+  async function handleFormSaved(input: TransactionInput) {
+    try {
+      let saved: Transaction;
+
+      if (editingTransaction) {
+        // Update mode
+        saved = await updateTransaction(editingTransaction.id, input);
+        setTransactions((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+      } else {
+        // Create mode
+        saved = await createTransaction(input);
+        setTransactions((prev) => [saved, ...prev]);
+      }
+
+      setFormOpen(false);
+      setEditingTransaction(null);
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Failed to save transaction';
+      throw new Error(message);
     }
+  }
 
-    // Filter by category
-    if (filters.category !== "All Categories") {
-      filtered = filtered.filter((t) => t.category === filters.category);
+  async function handleDelete(id: number) {
+    try {
+      setDeleteError(null);
+      await deleteTransaction(id);
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      setDeleteConfirmId(null);
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Failed to delete transaction';
+      setDeleteError(message);
     }
+  }
 
-    // Filter by date range
-    if (filters.startDate) {
-      filtered = filtered.filter((t) => t.date >= filters.startDate);
-    }
-    if (filters.endDate) {
-      filtered = filtered.filter((t) => t.date <= filters.endDate);
-    }
+  function handleFilterChange(key: keyof TransactionFilters, value: string | number | undefined) {
+    setFilters((prev) => {
+      const updated = { ...prev };
+      if (value === undefined || value === '' || value === 0) {
+        delete updated[key];
+      } else {
+        (updated[key] as string | number) = value;
+      }
+      return updated;
+    });
+  }
 
-    setFilteredTransactions(filtered);
-  }, [transactions, filters]);
+  if (status === 'loading') {
+    return (
+      <div className="transactions-page">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
-  const handleAddTransaction = (data: {
-    description: string;
-    amount: number;
-    category: string;
-    date: string;
-    type: "income" | "expense";
-  }) => {
-    addTransaction(data);
-    setShowAddModal(false);
-  };
-
-  const handleDeleteTransaction = (id: string) => {
-    deleteTransaction(id);
-  };
-
-  const categories = Array.from(
-    new Set(transactions.map((t) => t.category))
-  ).sort();
+  if (status === 'error') {
+    return (
+      <div className="transactions-page">
+        <p>Failed to load transactions</p>
+      </div>
+    );
+  }
 
   return (
     <div className="transactions-page">
       <div className="transactions-header">
         <h1>Transactions</h1>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+        <button className="btn btn-primary" onClick={handleCreate}>
           Add Transaction
         </button>
       </div>
 
-      <div className="filters-section">
-        <div className="filter-group">
-          <label>Type:</label>
-          <div className="filter-buttons">
-            <button
-              className={`filter-btn ${filters.type === "all" ? "active" : ""}`}
-              onClick={() => setFilters({ ...filters, type: "all" })}
-            >
-              All
-            </button>
-            <button
-              className={`filter-btn ${filters.type === "income" ? "active" : ""}`}
-              onClick={() => setFilters({ ...filters, type: "income" })}
-            >
-              Income
-            </button>
-            <button
-              className={`filter-btn ${filters.type === "expense" ? "active" : ""}`}
-              onClick={() => setFilters({ ...filters, type: "expense" })}
-            >
-              Expense
-            </button>
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="category-select">Category:</label>
-          <select
-            id="category-select"
-            value={filters.category}
-            onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-          >
-            <option>All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="start-date">From:</label>
-          <input
-            id="start-date"
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-          />
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="end-date">To:</label>
-          <input
-            id="end-date"
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-          />
-        </div>
-      </div>
-
       <div className="transactions-content">
-        {filteredTransactions.length === 0 ? (
+        {transactions.length === 0 ? (
           <p className="no-transactions">No transactions yet</p>
         ) : (
-          <TransactionList
-            transactions={filteredTransactions}
-            onDelete={handleDeleteTransaction}
-          />
+          <table className="transactions-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.map((tx) => {
+                const category = categories.find((c) => c.id === tx.categoryId);
+                return (
+                  <tr key={tx.id}>
+                    <td>{tx.title}</td>
+                    <td>
+                      {tx.currency} {tx.amount.toFixed(2)}
+                    </td>
+                    <td>{category?.name || 'Unknown'}</td>
+                    <td>{tx.transactionDate}</td>
+                    <td>
+                      <button
+                        className="btn btn-small"
+                        onClick={() => handleEdit(tx)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-small btn-danger"
+                        onClick={() => setDeleteConfirmId(tx.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+      {formOpen && (
+        <div className="modal-overlay" onClick={() => setFormOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Add Transaction</h2>
+            <h2>{editingTransaction ? 'Edit Transaction' : 'New Transaction'}</h2>
             <TransactionForm
-              onSubmit={handleAddTransaction}
-              onCancel={() => setShowAddModal(false)}
+              transaction={editingTransaction || undefined}
+              categories={categories}
+              onSubmit={handleFormSaved}
+              onCancel={() => {
+                setFormOpen(false);
+                setEditingTransaction(null);
+              }}
             />
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId !== null && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirmId(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Delete this transaction?</h2>
+            {deleteError && <div className="error-message">{deleteError}</div>}
+            <p>This action cannot be undone.</p>
+            <div className="form-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setDeleteConfirmId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleDelete(deleteConfirmId)}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}
