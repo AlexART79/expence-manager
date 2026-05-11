@@ -215,7 +215,7 @@ export default function TransactionsPage() {
               {editingTransaction ? 'Edit Transaction' : 'New Transaction'}
             </h2>
             <TransactionForm
-              transaction={editingTransaction || undefined}
+              transaction={editingTransaction ?? undefined}
               categories={categories}
               onSubmit={handleFormSaved}
               onCancel={() => {
