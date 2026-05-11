@@ -79,7 +79,7 @@ export function getBudgetSummary(db: Db, userId: number, month: string): BudgetS
   const budget = findBudget(db, userId, month);
 
   const txns = db
-    .select({ amount: transactions.amount })
+    .select({ amount: transactions.amount, currency: transactions.currency })
     .from(transactions)
     .where(
       and(
@@ -95,7 +95,7 @@ export function getBudgetSummary(db: Db, userId: number, month: string): BudgetS
     return {
       month,
       budgetAmount: null,
-      currency: 'USD',
+      currency: txns[0]?.currency ?? 'USD',
       totalSpent,
       remaining: null,
       usagePercent: null,
