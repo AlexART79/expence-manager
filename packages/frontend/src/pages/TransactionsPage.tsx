@@ -214,15 +214,26 @@ export default function TransactionsPage() {
             <h2 className="text-lg font-bold text-gray-900 dark:text-dark-text mb-4">
               {editingTransaction ? 'Edit Transaction' : 'New Transaction'}
             </h2>
-            <TransactionForm
-              transaction={editingTransaction ?? undefined}
-              categories={categories}
-              onSubmit={handleFormSaved}
-              onCancel={() => {
-                setFormOpen(false);
-                setEditingTransaction(null);
-              }}
-            />
+            {editingTransaction ? (
+              <TransactionForm
+                transaction={editingTransaction}
+                categories={categories}
+                onSubmit={handleFormSaved}
+                onCancel={() => {
+                  setFormOpen(false);
+                  setEditingTransaction(null);
+                }}
+              />
+            ) : (
+              <TransactionForm
+                categories={categories}
+                onSubmit={handleFormSaved}
+                onCancel={() => {
+                  setFormOpen(false);
+                  setEditingTransaction(null);
+                }}
+              />
+            )}
           </div>
         </div>
       )}

@@ -123,7 +123,7 @@ describe('TransactionsPage', () => {
     await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
 
     // Click the header button to open the form
-    const headerButton = screen.getAllByRole('button', { name: /add transaction/i })[0];
+    const headerButton = screen.getAllByRole('button', { name: /add transaction/i })[0]!;
     await user.click(headerButton);
 
     await user.clear(screen.getByLabelText('Title'));
@@ -134,7 +134,7 @@ describe('TransactionsPage', () => {
 
     // Find the form submit button (not the header button)
     const submitButtons = screen.getAllByRole('button', { name: /add transaction/i });
-    await user.click(submitButtons[submitButtons.length - 1]);
+    await user.click(submitButtons[submitButtons.length - 1]!);
 
     await waitFor(() => {
       expect(txLib.createTransaction).toHaveBeenCalled();
@@ -150,12 +150,12 @@ describe('TransactionsPage', () => {
     await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
 
     // Click the header button to open the form
-    const headerButton = screen.getAllByRole('button', { name: /add transaction/i })[0];
+    const headerButton = screen.getAllByRole('button', { name: /add transaction/i })[0]!;
     await user.click(headerButton);
 
     // Find the submit button in the form (should be the second one now)
     const submitButtons = screen.getAllByRole('button', { name: /add transaction/i });
-    await user.click(submitButtons[submitButtons.length - 1]);
+    await user.click(submitButtons[submitButtons.length - 1]!);
 
     await waitFor(() => {
       expect(screen.getByText('Title is required')).toBeInTheDocument();

@@ -35,8 +35,13 @@ export default function TransactionForm({
     } else {
       setTitle('');
       setAmount('');
-      setCategoryId(categories[0] ? categories[0].id.toString() : '');
-      setTransactionDate(new Date().toISOString().split('T')[0]);
+      const firstCategory = categories.at(0);
+      const initialCategoryId: string = firstCategory
+        ? firstCategory.id.toString()
+        : '';
+      setCategoryId(initialCategoryId);
+      const dateString: string = new Date().toISOString().split('T')[0] ?? '';
+      setTransactionDate(dateString);
       setCurrency('USD');
       setNotes('');
     }
