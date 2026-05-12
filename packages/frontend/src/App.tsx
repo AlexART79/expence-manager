@@ -58,6 +58,7 @@ function AppShell() {
             )}
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {!loading && user && (
               <button
                 onClick={logout}
@@ -67,7 +68,6 @@ function AppShell() {
                 <LogOut size={18} />
               </button>
             )}
-            <ThemeToggle />
           </div>
         </div>
       </header>
