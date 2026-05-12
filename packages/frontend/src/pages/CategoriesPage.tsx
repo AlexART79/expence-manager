@@ -168,7 +168,7 @@ export default function CategoriesPage() {
                   <button
                     onClick={() => { setRenamingId(cat.id); setRenameValue(cat.name); }}
                     aria-label="Rename"
-                    className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors"
+                    className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                   >
                     <Pencil size={16} />
                   </button>

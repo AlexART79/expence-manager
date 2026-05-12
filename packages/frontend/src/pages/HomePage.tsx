@@ -276,7 +276,7 @@ export default function HomePage() {
             {!loading && (
               <button
                 onClick={openBudgetForm}
-                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
               >
                 {budget ? 'Edit' : 'Set budget'}
               </button>

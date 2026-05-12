@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ErrorBoundary from '../components/ErrorBoundary.tsx';
 
 function ThrowOnRender(): never {
@@ -9,6 +9,10 @@ function ThrowOnRender(): never {
 describe('ErrorBoundary', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('renders fallback UI when a child component throws', () => {
