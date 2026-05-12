@@ -181,7 +181,7 @@ export default function HomePage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard
           label="Total Spent"
           value={`$${totalSpent.toFixed(2)}`}
@@ -222,7 +222,7 @@ export default function HomePage() {
       </div>
 
       {/* Mid row: Spending by Category + Monthly Budget panel */}
-      <div className="grid grid-cols-[1fr_360px] gap-3 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-3 mb-6">
         {/* Spending by Category */}
         <div className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl p-5">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text mb-4">
