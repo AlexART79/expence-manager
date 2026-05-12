@@ -31,10 +31,11 @@ describe('CategoriesPage', () => {
     vi.restoreAllMocks();
   });
 
-  it('shows loading state while fetching', () => {
+  it('shows skeleton items while fetching, not plain "Loading..." text', () => {
     vi.spyOn(categoriesLib, 'listCategories').mockReturnValue(new Promise(() => {}));
     renderPage();
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    expect(screen.getByTestId('categories-loading-skeleton')).toBeInTheDocument();
   });
 
   it('shows empty state when there are no categories', async () => {

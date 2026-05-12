@@ -45,8 +45,27 @@ export default function CategoriesPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center h-48">
-        <span className="text-gray-400 dark:text-dark-text-muted">Loading...</span>
+      <div className="max-w-2xl mx-auto" data-testid="categories-loading-skeleton">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="h-7 w-32 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+          <div className="h-4 w-24 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+        </div>
+        <div className="flex gap-2 mb-4">
+          <div className="flex-1 h-10 bg-gray-100 dark:bg-dark-raised rounded-lg animate-pulse" />
+          <div className="h-10 w-20 bg-gray-100 dark:bg-dark-raised rounded-lg animate-pulse" />
+        </div>
+        <ul className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <li
+              key={i}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-surface"
+            >
+              <div className="flex-1 h-4 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+              <div className="h-8 w-8 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+              <div className="h-8 w-8 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
