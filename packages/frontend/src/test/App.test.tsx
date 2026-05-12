@@ -65,4 +65,27 @@ describe('App', () => {
       expect(screen.getByRole('heading', { name: /transactions/i })).toBeInTheDocument();
     });
   });
+
+  it('header content is constrained to max-w-5xl', async () => {
+    vi.spyOn(authLib, 'getCurrentUser').mockResolvedValue({
+      id: 1,
+      email: 'test@example.com',
+      displayName: 'Test User',
+      avatarUrl: null,
+      provider: 'test',
+    });
+
+    const { container } = render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const header = container.querySelector('header');
+      expect(header).not.toBeNull();
+      const inner = header!.firstElementChild;
+      expect(inner?.classList.contains('max-w-5xl')).toBe(true);
+    });
+  });
 });
