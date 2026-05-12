@@ -81,8 +81,30 @@ export default function TransactionsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center h-48">
-        <span className="text-gray-400 dark:text-dark-text-muted">Loading...</span>
+      <div data-testid="transactions-loading-skeleton">
+        <div className="mb-8 flex items-center justify-between">
+          <div className="h-8 w-40 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+          <div className="h-10 w-40 bg-gray-100 dark:bg-dark-raised rounded-lg animate-pulse" />
+        </div>
+        <div className="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-dark-border shadow-sm overflow-x-auto">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border flex gap-6">
+            {['flex-1', 'w-20', 'w-24', 'w-24', 'w-20'].map((w, i) => (
+              <div key={i} className={`h-4 ${w} bg-gray-100 dark:bg-dark-raised rounded animate-pulse`} />
+            ))}
+          </div>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="px-6 py-4 border-b border-gray-200 dark:border-dark-border last:border-0 flex gap-6 items-center"
+            >
+              <div className="h-4 flex-1 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+              <div className="h-4 w-20 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+              <div className="h-4 w-24 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+              <div className="h-4 w-24 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+              <div className="h-8 w-20 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

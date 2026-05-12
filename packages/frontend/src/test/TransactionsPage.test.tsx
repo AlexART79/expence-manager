@@ -50,10 +50,11 @@ describe('TransactionsPage', () => {
     vi.spyOn(catLib, 'listCategories').mockResolvedValue([makeCategory()]);
   });
 
-  it('shows loading state while fetching', () => {
+  it('shows skeleton rows while fetching, not plain "Loading..." text', () => {
     vi.spyOn(txLib, 'listTransactions').mockReturnValue(new Promise(() => {}));
     renderPage();
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    expect(screen.getByTestId('transactions-loading-skeleton')).toBeInTheDocument();
   });
 
   it('shows empty state when there are no transactions', async () => {
