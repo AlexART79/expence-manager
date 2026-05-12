@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -8,7 +9,11 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
-        <span className="text-gray-400 dark:text-gray-600">Loading...</span>
+        <Loader2
+          data-testid="auth-loading-spinner"
+          size={24}
+          className="animate-spin text-emerald-500"
+        />
       </div>
     );
   }
