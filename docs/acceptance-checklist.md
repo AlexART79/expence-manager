@@ -62,7 +62,7 @@ Setup: set a budget of $100 for the current month. Then add transactions totalin
 
 ## Error Handling
 
-- [x] **API error display:** Stopping the backend server and triggering any data fetch shows an error message in the UI — not a blank page or an unhandled exception. (verified API side: all API routes return structured `{"error":{"code":"...","message":"...","details":{}}}` JSON; the React ErrorBoundary in the app shell catches rendering failures; error states are handled by React Query)
+- [x] **API error display:** Stopping the backend server and triggering any data fetch shows an error message in the UI — not a blank page or an unhandled exception. (verified: all API routes return structured `{"error":{"code":"...","message":"...","details":{}}}` JSON; the React ErrorBoundary in the app shell catches rendering failures; error states use plain `useState`/`useEffect` with a custom `status` state (pending/success/error) in each page component; error states display a retry button)
 
 ## Known Issues / Deferred Items
 
