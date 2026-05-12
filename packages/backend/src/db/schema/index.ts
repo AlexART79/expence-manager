@@ -81,3 +81,23 @@ export const monthlyBudgets = sqliteTable(
     ),
   }),
 );
+
+export const budgetAlerts = sqliteTable(
+  'budget_alerts',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id').notNull().references(() => users.id),
+    month: text('month').notNull(),
+    threshold: integer('threshold').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    userMonthThresholdIdx: uniqueIndex('budget_alerts_user_id_month_threshold_idx').on(
+      table.userId,
+      table.month,
+      table.threshold,
+    ),
+  }),
+);
