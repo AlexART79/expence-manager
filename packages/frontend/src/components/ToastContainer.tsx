@@ -1,12 +1,18 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useWebSocket, type BudgetAlert } from '../context/WebSocketContext.tsx';
 
-function Toast({ alert, onDismiss }: { alert: BudgetAlert; onDismiss: () => void }) {
+function Toast({
+  alert,
+  dismissAlert,
+}: {
+  alert: BudgetAlert;
+  dismissAlert: (id: string) => void;
+}) {
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 6000);
+    const timer = setTimeout(() => dismissAlert(alert.id), 6000);
     return () => clearTimeout(timer);
-  }, [onDismiss]);
+  }, [alert.id, dismissAlert]);
 
   const accentColor =
     alert.threshold >= 100
@@ -30,7 +36,7 @@ function Toast({ alert, onDismiss }: { alert: BudgetAlert; onDismiss: () => void
         </p>
       </div>
       <button
-        onClick={onDismiss}
+        onClick={() => dismissAlert(alert.id)}
         aria-label="Dismiss alert"
         className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-dark-text-secondary transition-colors"
       >
@@ -47,10 +53,9 @@ export default function ToastContainer() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-      {alerts.map((alert) => {
-        const dismiss = () => dismissAlert(alert.id);
-        return <Toast key={alert.id} alert={alert} onDismiss={dismiss} />;
-      })}
+      {alerts.map((alert) => (
+        <Toast key={alert.id} alert={alert} dismissAlert={dismissAlert} />
+      ))}
     </div>
   );
 }
