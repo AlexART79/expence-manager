@@ -4,10 +4,10 @@ import { listTransactions, type Transaction } from '../lib/transactions.ts';
 import {
   getBudgetSummary,
   getBudget,
-  setBudget,
   type BudgetSummary,
   type MonthlyBudget,
 } from '../lib/budgets.ts';
+import BudgetModal from '../components/BudgetModal.tsx';
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -75,9 +75,6 @@ export default function HomePage() {
   const [budget, setBudgetState] = useState<MonthlyBudget | null>(null);
   const [loading, setLoading] = useState(true);
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
-  const [budgetInput, setBudgetInput] = useState('');
-  const [budgetSaving, setBudgetSaving] = useState(false);
-  const [budgetError, setBudgetError] = useState('');
 
   const month = getCurrentMonth();
   const { dateFrom, dateTo } = getMonthDateRange(month);
@@ -106,37 +103,8 @@ export default function HomePage() {
     loadData();
   }, [loadData]);
 
-  async function handleSetBudget(e: React.FormEvent) {
-    e.preventDefault();
-    const amount = parseFloat(budgetInput);
-    if (isNaN(amount) || amount <= 0) {
-      setBudgetError('Enter a positive amount');
-      return;
-    }
-    setBudgetSaving(true);
-    setBudgetError('');
-    try {
-      await setBudget(month, { amount, currency: 'USD' });
-      setBudgetFormOpen(false);
-      setBudgetInput('');
-      await loadData();
-    } catch {
-      setBudgetError('Failed to save budget. Try again.');
-    } finally {
-      setBudgetSaving(false);
-    }
-  }
-
   function openBudgetForm() {
-    setBudgetInput(budget ? String(budget.amount) : '');
-    setBudgetError('');
     setBudgetFormOpen(true);
-  }
-
-  function closeBudgetForm() {
-    setBudgetFormOpen(false);
-    setBudgetInput('');
-    setBudgetError('');
   }
 
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
@@ -236,48 +204,6 @@ export default function HomePage() {
           loading={loading}
         />
       </div>
-
-      {/* Budget set/edit inline form */}
-      {budgetFormOpen && (
-        <div className="mb-6 bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text mb-3">
-            {budget ? 'Update Monthly Budget' : 'Set Monthly Budget'}
-          </h3>
-          <form onSubmit={handleSetBudget} className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400 dark:text-dark-text-muted">USD $</span>
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={budgetInput}
-                onChange={(e) => setBudgetInput(e.target.value)}
-                placeholder={budget ? String(budget.amount) : '1000'}
-                className="w-40 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-raised text-gray-900 dark:text-dark-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                disabled={budgetSaving}
-                autoFocus
-              />
-            </div>
-            {budgetError && (
-              <span className="text-xs text-red-500">{budgetError}</span>
-            )}
-            <button
-              type="submit"
-              disabled={budgetSaving}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-            >
-              {budgetSaving ? 'Saving...' : 'Save'}
-            </button>
-            <button
-              type="button"
-              onClick={closeBudgetForm}
-              className="px-4 py-2 text-gray-500 dark:text-dark-text-secondary rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-dark-raised"
-            >
-              Cancel
-            </button>
-          </form>
-        </div>
-      )}
 
       {/* Mid row: Spending by Category + Monthly Budget panel */}
       <div className="grid grid-cols-[1fr_360px] gap-3 mb-6">
@@ -425,6 +351,14 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      <BudgetModal
+        isOpen={budgetFormOpen}
+        month={month}
+        budget={budget}
+        onClose={() => setBudgetFormOpen(false)}
+        onSuccess={loadData}
+      />
     </div>
   );
 }
