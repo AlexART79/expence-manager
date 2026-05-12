@@ -67,6 +67,26 @@ describe('CategoriesPage', () => {
     });
   });
 
+  it('retries loading when "Try again" is clicked after an error', async () => {
+    const user = userEvent.setup();
+    const listSpy = vi.spyOn(categoriesLib, 'listCategories');
+    listSpy
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce([makeCategory({ id: 1, name: 'Recovered' })]);
+
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByText(/failed to load categories/i)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /try again/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Recovered')).toBeInTheDocument();
+    });
+    expect(listSpy).toHaveBeenCalledTimes(2);
+  });
+
   it('creates a category and adds it to the list', async () => {
     const user = userEvent.setup();
     vi.spyOn(categoriesLib, 'listCategories').mockResolvedValue([]);

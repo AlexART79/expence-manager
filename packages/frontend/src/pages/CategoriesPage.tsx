@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Pencil, Trash2, X, Check, Tag } from 'lucide-react';
 import {
   listCategories,
@@ -18,11 +18,16 @@ export default function CategoriesPage() {
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
+    setStatus('loading');
     listCategories()
       .then((data) => { setCats(data); setStatus('idle'); })
       .catch(() => setStatus('error'));
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -72,8 +77,14 @@ export default function CategoriesPage() {
 
   if (status === 'error') {
     return (
-      <div className="py-8 text-center text-red-600 dark:text-red-400">
-        Failed to load categories. Please refresh the page.
+      <div className="max-w-2xl mx-auto py-16 flex flex-col items-center gap-4 text-center">
+        <p className="text-red-600 dark:text-red-400 font-medium">Failed to load categories.</p>
+        <button
+          onClick={loadData}
+          className="px-4 py-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        >
+          Try again
+        </button>
       </div>
     );
   }

@@ -74,6 +74,26 @@ describe('TransactionsPage', () => {
     });
   });
 
+  it('retries loading when "Try again" is clicked after an error', async () => {
+    const user = userEvent.setup();
+    const listTxSpy = vi.spyOn(txLib, 'listTransactions');
+    listTxSpy
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce([makeTransaction({ id: 1, title: 'Recovered' })]);
+
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByText(/failed to load transactions/i)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /try again/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Recovered')).toBeInTheDocument();
+    });
+    expect(listTxSpy).toHaveBeenCalledTimes(2);
+  });
+
   it('renders a list of transactions', async () => {
     vi.spyOn(txLib, 'listTransactions').mockResolvedValue([
       makeTransaction({

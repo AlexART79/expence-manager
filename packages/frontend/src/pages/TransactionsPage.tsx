@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Receipt } from 'lucide-react';
 import {
   listTransactions,
@@ -20,13 +20,9 @@ export default function TransactionsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  // Load transactions and categories on mount
-  useEffect(() => {
+  const loadData = useCallback(() => {
     setStatus('loading');
-    Promise.all([
-      listTransactions({}),
-      listCategories(),
-    ])
+    Promise.all([listTransactions({}), listCategories()])
       .then(([txns, cats]) => {
         setTransactions(txns);
         setCategories(cats);
@@ -34,6 +30,10 @@ export default function TransactionsPage() {
       })
       .catch(() => setStatus('error'));
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   function handleCreate() {
     setEditingTransaction(null);
@@ -111,8 +111,14 @@ export default function TransactionsPage() {
 
   if (status === 'error') {
     return (
-      <div className="py-8 text-center text-red-600 dark:text-red-400">
-        Failed to load transactions. Please refresh the page.
+      <div className="py-16 flex flex-col items-center gap-4 text-center">
+        <p className="text-red-600 dark:text-red-400 font-medium">Failed to load transactions.</p>
+        <button
+          onClick={loadData}
+          className="px-4 py-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        >
+          Try again
+        </button>
       </div>
     );
   }

@@ -74,6 +74,7 @@ export default function HomePage() {
   const [summary, setSummary] = useState<BudgetSummary | null>(null);
   const [budget, setBudgetState] = useState<MonthlyBudget | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
 
   const month = getCurrentMonth();
@@ -81,6 +82,7 @@ export default function HomePage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const [cats, txns, sum, bgt] = await Promise.all([
         listCategories(),
@@ -93,7 +95,7 @@ export default function HomePage() {
       setSummary(sum);
       setBudgetState(bgt);
     } catch {
-      // UI handles missing data via null/empty states
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -102,6 +104,20 @@ export default function HomePage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  if (loadError) {
+    return (
+      <div className="py-16 flex flex-col items-center gap-4 text-center">
+        <p className="text-red-600 dark:text-red-400 font-medium">Failed to load dashboard data.</p>
+        <button
+          onClick={loadData}
+          className="px-4 py-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   function openBudgetForm() {
     setBudgetFormOpen(true);
