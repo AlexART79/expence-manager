@@ -18,6 +18,8 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
   const savingRef = useRef(saving);
   useEffect(() => { onCloseRef.current = onClose; });
   useEffect(() => { savingRef.current = saving; });
+  const isOpenRef = useRef(isOpen);
+  useEffect(() => { isOpenRef.current = isOpen; });
 
   useEffect(() => {
     if (isOpen) {
@@ -28,7 +30,7 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !savingRef.current) onCloseRef.current();
+      if (e.key === 'Escape' && isOpenRef.current && !savingRef.current) onCloseRef.current();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
@@ -47,8 +49,8 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
     setError('');
     try {
       await setBudget(month, { amount, currency: 'USD' });
-      await onSuccess();
       onClose();
+      await onSuccess();
     } catch {
       setError('Failed to save budget. Try again.');
     } finally {
