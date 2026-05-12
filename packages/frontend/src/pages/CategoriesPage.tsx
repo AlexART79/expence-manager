@@ -21,7 +21,10 @@ export default function CategoriesPage() {
   const loadData = useCallback(() => {
     setStatus('loading');
     listCategories()
-      .then((data) => { setCats(data); setStatus('idle'); })
+      .then((data) => {
+        setCats(data);
+        setStatus('idle');
+      })
       .catch(() => setStatus('error'));
   }, []);
 
@@ -92,8 +95,12 @@ export default function CategoriesPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-dark-text">Categories</h2>
-        <span className="text-sm text-gray-400 dark:text-dark-text-muted">{cats.length} categories</span>
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-dark-text">
+          Categories
+        </h2>
+        <span className="text-sm text-gray-400 dark:text-dark-text-muted">
+          {cats.length} categories
+        </span>
       </div>
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-4">
@@ -114,9 +121,7 @@ export default function CategoriesPage() {
         </button>
       </form>
 
-      {createError && (
-        <p className="text-red-600 dark:text-red-400 text-sm mb-4">{createError}</p>
-      )}
+      {createError && <p className="text-red-600 dark:text-red-400 text-sm mb-4">{createError}</p>}
 
       {cats.length === 0 ? (
         <div
@@ -125,7 +130,9 @@ export default function CategoriesPage() {
         >
           <Tag size={36} className="text-gray-300 dark:text-dark-text-muted" />
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-dark-text mb-1">No categories yet</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-dark-text mb-1">
+              No categories yet
+            </p>
             <p className="text-sm text-gray-400 dark:text-dark-text-muted">
               Create a category to organize your transactions.
             </p>
@@ -155,7 +162,10 @@ export default function CategoriesPage() {
                     <Check size={16} />
                   </button>
                   <button
-                    onClick={() => { setRenamingId(null); setRenameValue(''); }}
+                    onClick={() => {
+                      setRenamingId(null);
+                      setRenameValue('');
+                    }}
                     aria-label="Cancel"
                     className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                   >
@@ -164,9 +174,14 @@ export default function CategoriesPage() {
                 </>
               ) : (
                 <>
-                  <span className="flex-1 text-gray-900 dark:text-dark-text font-medium">{cat.name}</span>
+                  <span className="flex-1 text-gray-900 dark:text-dark-text font-medium">
+                    {cat.name}
+                  </span>
                   <button
-                    onClick={() => { setRenamingId(cat.id); setRenameValue(cat.name); }}
+                    onClick={() => {
+                      setRenamingId(cat.id);
+                      setRenameValue(cat.name);
+                    }}
                     aria-label="Rename"
                     className="p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                   >
@@ -180,7 +195,9 @@ export default function CategoriesPage() {
                         await deleteCategory(cat.id);
                         setCats((prev) => prev.filter((c) => c.id !== cat.id));
                       } catch (err) {
-                        throw err instanceof ApiError ? new Error(err.message) : new Error('Failed to delete category');
+                        throw err instanceof ApiError
+                          ? new Error(err.message)
+                          : new Error('Failed to delete category');
                       }
                     }}
                     confirmMessage="Delete this category?"

@@ -1,8 +1,12 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { RefreshCw } from 'lucide-react';
 
-interface Props { children: ReactNode; }
-interface State { hasError: boolean; }
+interface Props {
+  children: ReactNode;
+}
+interface State {
+  hasError: boolean;
+}
 
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };

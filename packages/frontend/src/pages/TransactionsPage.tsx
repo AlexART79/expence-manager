@@ -62,8 +62,7 @@ export default function TransactionsPage() {
       setFormOpen(false);
       setEditingTransaction(null);
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : 'Failed to save transaction';
+      const message = err instanceof ApiError ? err.message : 'Failed to save transaction';
       throw new Error(message);
     }
   }
@@ -73,8 +72,7 @@ export default function TransactionsPage() {
       await deleteTransaction(id);
       setTransactions((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : 'Failed to delete transaction';
+      const message = err instanceof ApiError ? err.message : 'Failed to delete transaction';
       throw new Error(message);
     }
   }
@@ -89,7 +87,10 @@ export default function TransactionsPage() {
         <div className="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-dark-border shadow-sm overflow-x-auto">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border flex gap-6">
             {['flex-1', 'w-20', 'w-24', 'w-24', 'w-20'].map((w, i) => (
-              <div key={i} className={`h-4 ${w} bg-gray-100 dark:bg-dark-raised rounded animate-pulse`} />
+              <div
+                key={i}
+                className={`h-4 ${w} bg-gray-100 dark:bg-dark-raised rounded animate-pulse`}
+              />
             ))}
           </div>
           {[1, 2, 3, 4, 5].map((i) => (
@@ -145,8 +146,12 @@ export default function TransactionsPage() {
         >
           <Receipt size={40} className="text-gray-300 dark:text-dark-text-muted" />
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-dark-text mb-1">No transactions yet</p>
-            <p className="text-sm text-gray-400 dark:text-dark-text-muted">Add your first expense to get started.</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-dark-text mb-1">
+              No transactions yet
+            </p>
+            <p className="text-sm text-gray-400 dark:text-dark-text-muted">
+              Add your first expense to get started.
+            </p>
           </div>
           <button
             onClick={handleCreate}
@@ -214,7 +219,9 @@ export default function TransactionsPage() {
                             try {
                               await handleDelete(tx.id);
                             } catch (err) {
-                              throw err instanceof Error ? err : new Error('Failed to delete transaction');
+                              throw err instanceof Error
+                                ? err
+                                : new Error('Failed to delete transaction');
                             }
                           }}
                           confirmMessage="Delete this transaction?"

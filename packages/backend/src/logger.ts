@@ -2,7 +2,12 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { Writable } from 'stream';
-import pino, { type DestinationStream, type Logger, type LoggerOptions, type StreamEntry } from 'pino';
+import pino, {
+  type DestinationStream,
+  type Logger,
+  type LoggerOptions,
+  type StreamEntry,
+} from 'pino';
 import pretty from 'pino-pretty';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
@@ -92,11 +97,19 @@ function buildStreams(config: LoggerConfig): StreamEntry[] {
     ensureLogDir(config.dir);
     streams.push({
       level: 'debug',
-      stream: pino.destination({ dest: path.join(config.dir, 'app.log'), mkdir: true, sync: false }),
+      stream: pino.destination({
+        dest: path.join(config.dir, 'app.log'),
+        mkdir: true,
+        sync: false,
+      }),
     });
     streams.push({
       level: 'error',
-      stream: pino.destination({ dest: path.join(config.dir, 'error.log'), mkdir: true, sync: false }),
+      stream: pino.destination({
+        dest: path.join(config.dir, 'error.log'),
+        mkdir: true,
+        sync: false,
+      }),
     });
   }
 

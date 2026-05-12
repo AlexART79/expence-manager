@@ -94,10 +94,7 @@ function waitForClose(ws: WebSocket, timeoutMs = 3000): Promise<number> {
   });
 }
 
-async function subscribeAndAwaitAck(
-  ws: WebSocket,
-  expectedMonth: string,
-): Promise<void> {
+async function subscribeAndAwaitAck(ws: WebSocket, expectedMonth: string): Promise<void> {
   ws.send(JSON.stringify({ type: 'budget_alerts.subscribe', payload: { month: 'current' } }));
   const ack = (await waitForMessage(ws)) as { type: string; payload: { month: string } };
   expect(ack.type).toBe('budget_alerts.subscribed');
@@ -107,8 +104,12 @@ async function subscribeAndAwaitAck(
 describe('WebSocket', () => {
   let server: TestServer;
 
-  beforeAll(async () => { server = await startTestServer(); });
-  afterAll(async () => { await server.close(); });
+  beforeAll(async () => {
+    server = await startTestServer();
+  });
+  afterAll(async () => {
+    await server.close();
+  });
 
   const currentMonth = (() => {
     const now = new Date();
@@ -155,7 +156,10 @@ describe('WebSocket', () => {
     const msgPromise = waitForMessage(ws);
     await createTransaction(server.url, cookie, categoryId, 500, currentMonth);
 
-    const msg = (await msgPromise) as { type: string; payload: { threshold: number; month: string } };
+    const msg = (await msgPromise) as {
+      type: string;
+      payload: { threshold: number; month: string };
+    };
     expect(msg.type).toBe('budget_alerts.alert');
     expect(msg.payload.threshold).toBe(50);
     expect(msg.payload.month).toBe(currentMonth);
@@ -217,7 +221,9 @@ describe('WebSocket', () => {
     await first;
 
     let gotExtra = false;
-    ws.once('message', () => { gotExtra = true; });
+    ws.once('message', () => {
+      gotExtra = true;
+    });
     await createTransaction(server.url, cookie, categoryId, 100, currentMonth);
     await new Promise((r) => setTimeout(r, 300));
     expect(gotExtra).toBe(false);
@@ -234,7 +240,9 @@ describe('WebSocket', () => {
     await subscribeAndAwaitAck(wsB, currentMonth);
 
     let bGotAlert = false;
-    wsB.once('message', () => { bGotAlert = true; });
+    wsB.once('message', () => {
+      bGotAlert = true;
+    });
 
     await createTransaction(server.url, cookieA, categoryId, 500, currentMonth);
     await new Promise((r) => setTimeout(r, 300));
@@ -250,7 +258,9 @@ describe('WebSocket', () => {
     const ws = await connectWs(server.wsUrl, cookie);
 
     let gotAlert = false;
-    ws.once('message', () => { gotAlert = true; });
+    ws.once('message', () => {
+      gotAlert = true;
+    });
     await createTransaction(server.url, cookie, categoryId, 500, currentMonth);
     await new Promise((r) => setTimeout(r, 300));
     expect(gotAlert).toBe(false);

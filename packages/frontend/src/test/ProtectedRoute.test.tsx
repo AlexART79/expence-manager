@@ -42,7 +42,13 @@ describe('ProtectedRoute', () => {
 
   it('renders children when authenticated', () => {
     vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
-      user: { id: 1, displayName: 'Alice', email: 'alice@test.com', avatarUrl: null, provider: 'google' },
+      user: {
+        id: 1,
+        displayName: 'Alice',
+        email: 'alice@test.com',
+        avatarUrl: null,
+        provider: 'google',
+      },
       loading: false,
       logout: vi.fn(),
     });

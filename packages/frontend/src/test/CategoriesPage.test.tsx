@@ -129,7 +129,13 @@ describe('CategoriesPage', () => {
     const user = userEvent.setup();
     vi.spyOn(categoriesLib, 'listCategories').mockResolvedValue([]);
     vi.spyOn(categoriesLib, 'createCategory').mockRejectedValue(
-      new ApiError(409, { error: { code: 'CONFLICT', message: 'A category with this name already exists', details: {} } }),
+      new ApiError(409, {
+        error: {
+          code: 'CONFLICT',
+          message: 'A category with this name already exists',
+          details: {},
+        },
+      }),
     );
 
     renderPage();

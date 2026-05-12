@@ -7,10 +7,7 @@ function extractSessionCookie(res: Response): string {
   return match ? match[0] : '';
 }
 
-async function loginAs(
-  url: string,
-  email: string,
-): Promise<{ cookie: string; userId: number }> {
+async function loginAs(url: string, email: string): Promise<{ cookie: string; userId: number }> {
   const res = await fetch(`${url}/api/auth/test/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -59,8 +56,12 @@ async function addTransaction(
 describe('Budgets API', () => {
   let server: TestServer;
 
-  beforeAll(async () => { server = await startTestServer(); });
-  afterAll(async () => { await server.close(); });
+  beforeAll(async () => {
+    server = await startTestServer();
+  });
+  afterAll(async () => {
+    await server.close();
+  });
 
   // --- auth guards ---
 

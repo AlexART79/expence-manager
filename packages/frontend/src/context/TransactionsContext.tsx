@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 export interface Transaction {
   id: string;
@@ -6,14 +6,14 @@ export interface Transaction {
   amount: number;
   category: string;
   date: string;
-  type: "income" | "expense";
+  type: 'income' | 'expense';
 }
 
 interface TransactionsContextValue {
   transactions: Transaction[];
   loading: boolean;
   error: string | null;
-  addTransaction: (data: Omit<Transaction, "id">) => void;
+  addTransaction: (data: Omit<Transaction, 'id'>) => void;
   deleteTransaction: (id: string) => void;
 }
 
@@ -27,12 +27,12 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   // Load transactions from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("transactions");
+      const stored = localStorage.getItem('transactions');
       if (stored) {
         setTransactions(JSON.parse(stored));
       }
     } catch (err) {
-      setError("Failed to load transactions");
+      setError('Failed to load transactions');
     } finally {
       setLoading(false);
     }
@@ -41,11 +41,11 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   // Save transactions to localStorage whenever they change
   useEffect(() => {
     if (!loading) {
-      localStorage.setItem("transactions", JSON.stringify(transactions));
+      localStorage.setItem('transactions', JSON.stringify(transactions));
     }
   }, [transactions, loading]);
 
-  const addTransaction = (data: Omit<Transaction, "id">) => {
+  const addTransaction = (data: Omit<Transaction, 'id'>) => {
     try {
       const newTransaction: Transaction = {
         ...data,
@@ -54,7 +54,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
       setTransactions((prev) => [newTransaction, ...prev]);
       setError(null);
     } catch (err) {
-      setError("Failed to add transaction");
+      setError('Failed to add transaction');
     }
   };
 
@@ -63,7 +63,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
       setTransactions((prev) => prev.filter((t) => t.id !== id));
       setError(null);
     } catch (err) {
-      setError("Failed to delete transaction");
+      setError('Failed to delete transaction');
     }
   };
 
@@ -79,7 +79,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
 export function useTransactions(): TransactionsContextValue {
   const ctx = useContext(TransactionsContext);
   if (!ctx) {
-    throw new Error("useTransactions must be used inside TransactionsProvider");
+    throw new Error('useTransactions must be used inside TransactionsProvider');
   }
   return ctx;
 }

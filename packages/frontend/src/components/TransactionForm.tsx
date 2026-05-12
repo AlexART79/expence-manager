@@ -36,9 +36,7 @@ export default function TransactionForm({
       setTitle('');
       setAmount('');
       const firstCategory = categories.at(0);
-      const initialCategoryId: string = firstCategory
-        ? firstCategory.id.toString()
-        : '';
+      const initialCategoryId: string = firstCategory ? firstCategory.id.toString() : '';
       setCategoryId(initialCategoryId);
       const dateString: string = new Date().toISOString().split('T')[0] ?? '';
       setTransactionDate(dateString);
@@ -130,7 +128,10 @@ export default function TransactionForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="category" className="font-semibold text-gray-700 dark:text-dark-text text-sm">
+        <label
+          htmlFor="category"
+          className="font-semibold text-gray-700 dark:text-dark-text text-sm"
+        >
           Category
         </label>
         <select
@@ -164,7 +165,10 @@ export default function TransactionForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="currency" className="font-semibold text-gray-700 dark:text-dark-text text-sm">
+        <label
+          htmlFor="currency"
+          className="font-semibold text-gray-700 dark:text-dark-text text-sm"
+        >
           Currency
         </label>
         <input

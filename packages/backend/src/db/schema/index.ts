@@ -28,7 +28,9 @@ export const categories = sqliteTable(
   'categories',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    userId: integer('user_id').notNull().references(() => users.id),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
     name: text('name').notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
@@ -44,8 +46,12 @@ export const categories = sqliteTable(
 
 export const transactions = sqliteTable('transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id),
-  categoryId: integer('category_id').notNull().references(() => categories.id),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  categoryId: integer('category_id')
+    .notNull()
+    .references(() => categories.id),
   title: text('title').notNull(),
   amount: real('amount').notNull(),
   currency: text('currency').notNull().default('USD'),
@@ -63,7 +69,9 @@ export const monthlyBudgets = sqliteTable(
   'monthly_budgets',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    userId: integer('user_id').notNull().references(() => users.id),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
     month: text('month').notNull(),
     amount: real('amount').notNull(),
     currency: text('currency').notNull().default('USD'),
@@ -75,10 +83,7 @@ export const monthlyBudgets = sqliteTable(
       .$defaultFn(() => new Date()),
   },
   (table) => ({
-    userMonthIdx: uniqueIndex('monthly_budgets_user_id_month_idx').on(
-      table.userId,
-      table.month,
-    ),
+    userMonthIdx: uniqueIndex('monthly_budgets_user_id_month_idx').on(table.userId, table.month),
   }),
 );
 
@@ -86,7 +91,9 @@ export const budgetAlerts = sqliteTable(
   'budget_alerts',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    userId: integer('user_id').notNull().references(() => users.id),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
     month: text('month').notNull(),
     threshold: integer('threshold').notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' })

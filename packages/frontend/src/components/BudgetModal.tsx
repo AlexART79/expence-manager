@@ -9,17 +9,29 @@ interface BudgetModalProps {
   onSuccess: () => Promise<void>;
 }
 
-export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess }: BudgetModalProps) {
+export default function BudgetModal({
+  isOpen,
+  month,
+  budget,
+  onClose,
+  onSuccess,
+}: BudgetModalProps) {
   const [input, setInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const onCloseRef = useRef(onClose);
   const savingRef = useRef(saving);
-  useEffect(() => { onCloseRef.current = onClose; });
-  useEffect(() => { savingRef.current = saving; });
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+  useEffect(() => {
+    savingRef.current = saving;
+  });
   const isOpenRef = useRef(isOpen);
-  useEffect(() => { isOpenRef.current = isOpen; });
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -76,7 +88,9 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
         </h3>
         <form onSubmit={handleSubmit}>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-400 dark:text-dark-text-muted whitespace-nowrap">USD $</span>
+            <span className="text-sm text-gray-400 dark:text-dark-text-muted whitespace-nowrap">
+              USD $
+            </span>
             <input
               type="number"
               min="0.01"
@@ -89,9 +103,7 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
               autoFocus
             />
           </div>
-          {error && (
-            <p className="text-xs text-red-500 mb-3">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
           <div className="flex justify-end gap-3 mt-5">
             <button
               type="button"

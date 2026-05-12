@@ -34,8 +34,16 @@ function formatMonth(month: string): string {
 }
 
 const CATEGORY_COLORS = [
-  '#ef4444', '#f97316', '#06b6d4', '#8b5cf6', '#ec4899',
-  '#10b981', '#f59e0b', '#3b82f6', '#14b8a6', '#a855f7',
+  '#ef4444',
+  '#f97316',
+  '#06b6d4',
+  '#8b5cf6',
+  '#ec4899',
+  '#10b981',
+  '#f59e0b',
+  '#3b82f6',
+  '#14b8a6',
+  '#a855f7',
 ];
 
 function StatCard({
@@ -59,7 +67,9 @@ function StatCard({
       {loading ? (
         <div className="h-8 w-20 bg-gray-100 dark:bg-dark-raised rounded animate-pulse mb-1" />
       ) : (
-        <p className={`text-2xl font-bold tracking-tight ${color ?? 'text-gray-900 dark:text-dark-text'}`}>
+        <p
+          className={`text-2xl font-bold tracking-tight ${color ?? 'text-gray-900 dark:text-dark-text'}`}
+        >
           {value}
         </p>
       )}
@@ -144,9 +154,8 @@ export default function HomePage() {
     .sort((a, b) => b.transactionDate.localeCompare(a.transactionDate))
     .slice(0, 5);
 
-  const maxAmount = spendingByCategory.length > 0
-    ? Math.max(...spendingByCategory.map((c) => c.amount))
-    : 1;
+  const maxAmount =
+    spendingByCategory.length > 0 ? Math.max(...spendingByCategory.map((c) => c.amount)) : 1;
 
   const totalSpent = summary?.totalSpent ?? 0;
   const budgetAmount = summary?.budgetAmount ?? null;
@@ -156,17 +165,17 @@ export default function HomePage() {
     budgetAmount === null
       ? 'text-gray-400 dark:text-dark-text-muted'
       : (usagePercent ?? 0) >= 100
-      ? 'text-red-600 dark:text-red-400'
-      : (usagePercent ?? 0) >= 80
-      ? 'text-amber-600 dark:text-amber-400'
-      : 'text-emerald-600 dark:text-emerald-400';
+        ? 'text-red-600 dark:text-red-400'
+        : (usagePercent ?? 0) >= 80
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-emerald-600 dark:text-emerald-400';
 
   const progressBarColor =
     (usagePercent ?? 0) >= 100
       ? 'bg-red-500'
       : (usagePercent ?? 0) >= 80
-      ? 'bg-amber-500'
-      : 'bg-emerald-500';
+        ? 'bg-amber-500'
+        : 'bg-emerald-500';
 
   return (
     <div>
@@ -231,7 +240,10 @@ export default function HomePage() {
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-5 bg-gray-100 dark:bg-dark-raised rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-5 bg-gray-100 dark:bg-dark-raised rounded animate-pulse"
+                />
               ))}
             </div>
           ) : spendingByCategory.length === 0 ? (

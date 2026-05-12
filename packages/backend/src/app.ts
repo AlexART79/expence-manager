@@ -16,7 +16,11 @@ import { env } from './env.js';
 
 type NotifyAlerts = (userId: number, month: string) => void;
 
-export function createApp(db = getDb(), sessionMiddleware: RequestHandler = createSessionMiddleware(), notifyAlerts?: NotifyAlerts): Application {
+export function createApp(
+  db = getDb(),
+  sessionMiddleware: RequestHandler = createSessionMiddleware(),
+  notifyAlerts?: NotifyAlerts,
+): Application {
   const app = express();
 
   registerStrategies(db);

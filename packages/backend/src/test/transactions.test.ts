@@ -7,7 +7,11 @@ function extractSessionCookie(res: Response): string {
   return match ? match[0] : '';
 }
 
-async function loginAs(url: string, email: string, displayName: string): Promise<{ cookie: string; userId: number }> {
+async function loginAs(
+  url: string,
+  email: string,
+  displayName: string,
+): Promise<{ cookie: string; userId: number }> {
   const res = await fetch(`${url}/api/auth/test/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -37,7 +41,7 @@ async function setupUserWithCategory(
 function txBody(categoryId: number) {
   return {
     title: 'Groceries',
-    amount: 45.50,
+    amount: 45.5,
     currency: 'USD',
     transactionDate: '2026-05-01',
     categoryId,
@@ -48,8 +52,12 @@ function txBody(categoryId: number) {
 describe('Transactions API', () => {
   let server: TestServer;
 
-  beforeAll(async () => { server = await startTestServer(); });
-  afterAll(async () => { await server.close(); });
+  beforeAll(async () => {
+    server = await startTestServer();
+  });
+  afterAll(async () => {
+    await server.close();
+  });
 
   // --- auth guard ---
 
@@ -64,7 +72,13 @@ describe('Transactions API', () => {
     const res = await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'Test', amount: 10, currency: 'USD', transactionDate: '2026-05-01', categoryId: 1 }),
+      body: JSON.stringify({
+        title: 'Test',
+        amount: 10,
+        currency: 'USD',
+        transactionDate: '2026-05-01',
+        categoryId: 1,
+      }),
     });
     expect(res.status).toBe(401);
   });
@@ -72,23 +86,39 @@ describe('Transactions API', () => {
   // --- create ---
 
   it('POST /api/transactions creates a transaction and returns 201', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'alice-tx1@ex.com', 'Alice1', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'alice-tx1@ex.com',
+      'Alice1',
+      'Food',
+    );
     const res = await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify(txBody(categoryId)),
     });
     expect(res.status).toBe(201);
-    const body = (await res.json()) as { id: number; title: string; amount: number; categoryId: number; currency: string };
+    const body = (await res.json()) as {
+      id: number;
+      title: string;
+      amount: number;
+      categoryId: number;
+      currency: string;
+    };
     expect(body.id).toBeTypeOf('number');
     expect(body.title).toBe('Groceries');
-    expect(body.amount).toBe(45.50);
+    expect(body.amount).toBe(45.5);
     expect(body.categoryId).toBe(categoryId);
     expect(body.currency).toBe('USD');
   });
 
   it('POST /api/transactions returns 400 for empty title', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'alice-tx2@ex.com', 'Alice2', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'alice-tx2@ex.com',
+      'Alice2',
+      'Food',
+    );
     const res = await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
@@ -100,7 +130,12 @@ describe('Transactions API', () => {
   });
 
   it('POST /api/transactions returns 400 for non-positive amount', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'alice-tx3@ex.com', 'Alice3', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'alice-tx3@ex.com',
+      'Alice3',
+      'Food',
+    );
     const res = await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
@@ -110,7 +145,12 @@ describe('Transactions API', () => {
   });
 
   it('POST /api/transactions returns 400 for invalid date format', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'alice-tx4@ex.com', 'Alice4', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'alice-tx4@ex.com',
+      'Alice4',
+      'Food',
+    );
     const res = await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
@@ -119,9 +159,14 @@ describe('Transactions API', () => {
     expect(res.status).toBe(400);
   });
 
-  it("POST /api/transactions returns 400 when categoryId belongs to another user", async () => {
+  it('POST /api/transactions returns 400 when categoryId belongs to another user', async () => {
     const { cookie } = await setupUserWithCategory(server.url, 'bob-tx1@ex.com', 'Bob1', 'Food');
-    const { categoryId: otherCatId } = await setupUserWithCategory(server.url, 'carol-tx1@ex.com', 'Carol1', 'Food');
+    const { categoryId: otherCatId } = await setupUserWithCategory(
+      server.url,
+      'carol-tx1@ex.com',
+      'Carol1',
+      'Food',
+    );
     const res = await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
@@ -143,9 +188,19 @@ describe('Transactions API', () => {
     expect(list).toHaveLength(0);
   });
 
-  it('GET /api/transactions returns only the authenticated user\'s transactions', async () => {
-    const { cookie: cookieA, categoryId: catA } = await setupUserWithCategory(server.url, 'dave-tx1@ex.com', 'Dave1', 'Food');
-    const { cookie: cookieB } = await setupUserWithCategory(server.url, 'eve-tx1@ex.com', 'Eve1', 'Food');
+  it("GET /api/transactions returns only the authenticated user's transactions", async () => {
+    const { cookie: cookieA, categoryId: catA } = await setupUserWithCategory(
+      server.url,
+      'dave-tx1@ex.com',
+      'Dave1',
+      'Food',
+    );
+    const { cookie: cookieB } = await setupUserWithCategory(
+      server.url,
+      'eve-tx1@ex.com',
+      'Eve1',
+      'Food',
+    );
     await fetch(`${server.url}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookieA },
@@ -157,37 +212,56 @@ describe('Transactions API', () => {
   });
 
   it('GET /api/transactions?search= filters by title', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'frank-tx1@ex.com', 'Frank1', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'frank-tx1@ex.com',
+      'Frank1',
+      'Food',
+    );
     await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ ...txBody(categoryId), title: 'Grocery Store' }),
     });
     await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ ...txBody(categoryId), title: 'Gas Station' }),
     });
-    const res = await fetch(`${server.url}/api/transactions?search=Grocery`, { headers: { Cookie: cookie } });
+    const res = await fetch(`${server.url}/api/transactions?search=Grocery`, {
+      headers: { Cookie: cookie },
+    });
     const list = (await res.json()) as { title: string }[];
     expect(list).toHaveLength(1);
     expect(list[0]!.title).toBe('Grocery Store');
   });
 
   it('GET /api/transactions?categoryId= filters by category', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'grace-tx1@ex.com', 'Grace1', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'grace-tx1@ex.com',
+      'Grace1',
+      'Food',
+    );
     const catRes = await fetch(`${server.url}/api/categories`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ name: 'Transport' }),
     });
     const cat2 = (await catRes.json()) as { id: number };
     await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ ...txBody(categoryId), title: 'Groceries' }),
     });
     await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ ...txBody(cat2.id), title: 'Bus pass' }),
     });
-    const res = await fetch(`${server.url}/api/transactions?categoryId=${categoryId}`, { headers: { Cookie: cookie } });
+    const res = await fetch(`${server.url}/api/transactions?categoryId=${categoryId}`, {
+      headers: { Cookie: cookie },
+    });
     const list = (await res.json()) as { title: string }[];
     expect(list).toHaveLength(1);
     expect(list[0]!.title).toBe('Groceries');
@@ -196,14 +270,21 @@ describe('Transactions API', () => {
   // --- update ---
 
   it('PUT /api/transactions/:id updates a transaction', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'hank-tx1@ex.com', 'Hank1', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'hank-tx1@ex.com',
+      'Hank1',
+      'Food',
+    );
     const createRes = await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify(txBody(categoryId)),
     });
     const created = (await createRes.json()) as { id: number };
     const res = await fetch(`${server.url}/api/transactions/${created.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify({ ...txBody(categoryId), title: 'Updated Title', amount: 99 }),
     });
     expect(res.status).toBe(200);
@@ -213,15 +294,27 @@ describe('Transactions API', () => {
   });
 
   it('PUT /api/transactions/:id returns 404 when transaction belongs to another user', async () => {
-    const { cookie: cookieA, categoryId: catA } = await setupUserWithCategory(server.url, 'ivy-tx1@ex.com', 'Ivy1', 'Food');
-    const { cookie: cookieB, categoryId: catB } = await setupUserWithCategory(server.url, 'judy-tx1@ex.com', 'Judy1', 'Food');
+    const { cookie: cookieA, categoryId: catA } = await setupUserWithCategory(
+      server.url,
+      'ivy-tx1@ex.com',
+      'Ivy1',
+      'Food',
+    );
+    const { cookie: cookieB, categoryId: catB } = await setupUserWithCategory(
+      server.url,
+      'judy-tx1@ex.com',
+      'Judy1',
+      'Food',
+    );
     const createRes = await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookieA },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookieA },
       body: JSON.stringify(txBody(catA)),
     });
     const created = (await createRes.json()) as { id: number };
     const res = await fetch(`${server.url}/api/transactions/${created.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: cookieB },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Cookie: cookieB },
       body: JSON.stringify(txBody(catB)),
     });
     expect(res.status).toBe(404);
@@ -230,14 +323,21 @@ describe('Transactions API', () => {
   // --- delete ---
 
   it('DELETE /api/transactions/:id deletes a transaction and returns 204', async () => {
-    const { cookie, categoryId } = await setupUserWithCategory(server.url, 'karl-tx1@ex.com', 'Karl1', 'Food');
+    const { cookie, categoryId } = await setupUserWithCategory(
+      server.url,
+      'karl-tx1@ex.com',
+      'Karl1',
+      'Food',
+    );
     const createRes = await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
       body: JSON.stringify(txBody(categoryId)),
     });
     const created = (await createRes.json()) as { id: number };
     const deleteRes = await fetch(`${server.url}/api/transactions/${created.id}`, {
-      method: 'DELETE', headers: { Cookie: cookie },
+      method: 'DELETE',
+      headers: { Cookie: cookie },
     });
     expect(deleteRes.status).toBe(204);
     const listRes = await fetch(`${server.url}/api/transactions`, { headers: { Cookie: cookie } });
@@ -246,15 +346,27 @@ describe('Transactions API', () => {
   });
 
   it('DELETE /api/transactions/:id returns 404 when transaction belongs to another user', async () => {
-    const { cookie: cookieA, categoryId: catA } = await setupUserWithCategory(server.url, 'leo-tx1@ex.com', 'Leo1', 'Food');
-    const { cookie: cookieB } = await setupUserWithCategory(server.url, 'mia-tx1@ex.com', 'Mia1', 'Food');
+    const { cookie: cookieA, categoryId: catA } = await setupUserWithCategory(
+      server.url,
+      'leo-tx1@ex.com',
+      'Leo1',
+      'Food',
+    );
+    const { cookie: cookieB } = await setupUserWithCategory(
+      server.url,
+      'mia-tx1@ex.com',
+      'Mia1',
+      'Food',
+    );
     const createRes = await fetch(`${server.url}/api/transactions`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookieA },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookieA },
       body: JSON.stringify(txBody(catA)),
     });
     const created = (await createRes.json()) as { id: number };
     const res = await fetch(`${server.url}/api/transactions/${created.id}`, {
-      method: 'DELETE', headers: { Cookie: cookieB },
+      method: 'DELETE',
+      headers: { Cookie: cookieB },
     });
     expect(res.status).toBe(404);
   });

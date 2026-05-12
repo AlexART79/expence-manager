@@ -81,12 +81,7 @@ export function getBudgetSummary(db: Db, userId: number, month: string): BudgetS
   const txns = db
     .select({ amount: transactions.amount, currency: transactions.currency })
     .from(transactions)
-    .where(
-      and(
-        eq(transactions.userId, userId),
-        like(transactions.transactionDate, `${month}-%`),
-      ),
-    )
+    .where(and(eq(transactions.userId, userId), like(transactions.transactionDate, `${month}-%`)))
     .all();
 
   const totalSpent = txns.reduce((sum, tx) => sum + tx.amount, 0);

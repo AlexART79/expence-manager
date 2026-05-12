@@ -49,7 +49,11 @@ describe('App', () => {
   it('renders TransactionsPage for /transactions', async () => {
     // Mock auth to return a logged-in user
     vi.spyOn(authLib, 'getCurrentUser').mockResolvedValue({
-      id: 1, provider: 'test', email: 'a@test.com', displayName: 'Alice', avatarUrl: null,
+      id: 1,
+      provider: 'test',
+      email: 'a@test.com',
+      displayName: 'Alice',
+      avatarUrl: null,
     });
     // Mock transactions lib to return empty list
     vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);

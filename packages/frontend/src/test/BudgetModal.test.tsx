@@ -77,7 +77,7 @@ describe('BudgetModal', () => {
     await user.type(screen.getByRole('spinbutton'), '1200');
     await user.click(screen.getByRole('button', { name: /save/i }));
     await waitFor(() =>
-      expect(mockSetBudget).toHaveBeenCalledWith('2026-05', { amount: 1200, currency: 'USD' })
+      expect(mockSetBudget).toHaveBeenCalledWith('2026-05', { amount: 1200, currency: 'USD' }),
     );
     expect(props.onSuccess).toHaveBeenCalledOnce();
     expect(props.onClose).toHaveBeenCalledOnce();
@@ -90,7 +90,7 @@ describe('BudgetModal', () => {
     await user.type(screen.getByRole('spinbutton'), '500');
     await user.click(screen.getByRole('button', { name: /save/i }));
     await waitFor(() =>
-      expect(screen.getByText('Failed to save budget. Try again.')).toBeInTheDocument()
+      expect(screen.getByText('Failed to save budget. Try again.')).toBeInTheDocument(),
     );
   });
 

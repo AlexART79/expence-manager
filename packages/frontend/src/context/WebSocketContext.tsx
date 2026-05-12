@@ -55,9 +55,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     wsRef.current = ws;
 
     ws.onopen = () => {
-      ws.send(
-        JSON.stringify({ type: 'budget_alerts.subscribe', payload: { month: 'current' } }),
-      );
+      ws.send(JSON.stringify({ type: 'budget_alerts.subscribe', payload: { month: 'current' } }));
       logger.info('WebSocket connected and subscribed');
     };
 

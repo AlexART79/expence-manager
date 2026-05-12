@@ -39,11 +39,7 @@ function removeSubscription(ws: WebSocket) {
   socketMeta.delete(ws);
 }
 
-export function createWsServer(
-  server: Server,
-  db: Db,
-  sessionMiddleware: RequestHandler,
-) {
+export function createWsServer(server: Server, db: Db, sessionMiddleware: RequestHandler) {
   const wss = new WebSocketServer({ server });
   const passportInit = passport.initialize();
   const passportSession = passport.session();
@@ -70,18 +66,18 @@ export function createWsServer(
 
           ws.on('message', (data) => {
             try {
-              const parsed = SubscribeMessageSchema.safeParse(
-                JSON.parse(data.toString()),
-              );
+              const parsed = SubscribeMessageSchema.safeParse(JSON.parse(data.toString()));
               if (!parsed.success) return;
 
               const month = getCurrentMonth();
               addSubscription(ws, user.id, month);
 
-              ws.send(JSON.stringify({
-                type: 'budget_alerts.subscribed',
-                payload: { month },
-              }));
+              ws.send(
+                JSON.stringify({
+                  type: 'budget_alerts.subscribed',
+                  payload: { month },
+                }),
+              );
 
               logger.info({ userId: user.id, month }, 'WS subscription registered');
             } catch {

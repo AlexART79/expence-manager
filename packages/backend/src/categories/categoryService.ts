@@ -83,9 +83,7 @@ export function deleteCategory(db: Db, userId: number, categoryId: number): void
     .get();
   if (!existing) throw new CategoryNotFoundError();
 
-  const txns = db.select().from(transactions)
-    .where(eq(transactions.categoryId, categoryId))
-    .all();
+  const txns = db.select().from(transactions).where(eq(transactions.categoryId, categoryId)).all();
   if (txns.length > 0) throw new CategoryHasTransactionsError();
 
   db.delete(categories)

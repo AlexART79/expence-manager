@@ -46,10 +46,7 @@
       "indexes": {
         "categories_user_id_name_idx": {
           "name": "categories_user_id_name_idx",
-          "columns": [
-            "user_id",
-            "name"
-          ],
+          "columns": ["user_id", "name"],
           "isUnique": true
         }
       },
@@ -58,12 +55,8 @@
           "name": "categories_user_id_users_id_fk",
           "tableFrom": "categories",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -134,10 +127,7 @@
       "indexes": {
         "users_provider_provider_user_id_idx": {
           "name": "users_provider_provider_user_id_idx",
-          "columns": [
-            "provider",
-            "provider_user_id"
-          ],
+          "columns": ["provider", "provider_user_id"],
           "isUnique": true
         }
       },

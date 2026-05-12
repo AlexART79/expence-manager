@@ -124,7 +124,7 @@ describe('Categories API', () => {
     expect(res2.status).toBe(201);
   });
 
-  it('GET /api/categories returns only the authenticated user\'s categories', async () => {
+  it("GET /api/categories returns only the authenticated user's categories", async () => {
     const { cookie: cookieG } = await loginAs(server.url, 'grace@example.com', 'Grace');
     const { cookie: cookieH } = await loginAs(server.url, 'hank@example.com', 'Hank');
 

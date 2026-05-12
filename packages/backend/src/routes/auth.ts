@@ -55,23 +55,19 @@ export function createAuthRouter(db: Db): Router {
 
   // Test-only stub — bypasses real OAuth for automated tests
   if (env.NODE_ENV === 'test') {
-    router.post(
-      '/test/login',
-      validateRequest({ body: TestLoginSchema }),
-      (req, res, next) => {
-        const user = findOrCreateUser(db, {
-          provider: 'test',
-          providerUserId: `test-${req.body.email}`,
-          email: req.body.email,
-          displayName: req.body.displayName,
-        });
-        req.logIn(user, (err) => {
-          if (err) return next(err);
-          const { id, email, displayName, avatarUrl } = user;
-          res.json({ id, email, displayName, avatarUrl });
-        });
-      },
-    );
+    router.post('/test/login', validateRequest({ body: TestLoginSchema }), (req, res, next) => {
+      const user = findOrCreateUser(db, {
+        provider: 'test',
+        providerUserId: `test-${req.body.email}`,
+        email: req.body.email,
+        displayName: req.body.displayName,
+      });
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        const { id, email, displayName, avatarUrl } = user;
+        res.json({ id, email, displayName, avatarUrl });
+      });
+    });
   }
 
   return router;

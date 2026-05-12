@@ -31,7 +31,13 @@ describe('users table', () => {
   it('rejects duplicate provider+providerUserId', () => {
     const { db, sqlite } = createTestDb();
     try {
-      const row = { provider: 'google', providerUserId: 'g1', email: 'a@b.com', displayName: 'A', avatarUrl: null };
+      const row = {
+        provider: 'google',
+        providerUserId: 'g1',
+        email: 'a@b.com',
+        displayName: 'A',
+        avatarUrl: null,
+      };
       db.insert(users).values(row).returning().all();
 
       expect(() => db.insert(users).values(row).returning().all()).toThrow();

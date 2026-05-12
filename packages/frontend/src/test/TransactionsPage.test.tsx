@@ -7,7 +7,6 @@ import * as txLib from '../lib/transactions.ts';
 import * as catLib from '../lib/categories.ts';
 import type { Transaction } from '../lib/transactions.ts';
 import type { Category } from '../lib/categories.ts';
-import { ApiError } from '../lib/apiClient.ts';
 
 function makeCategory(overrides: Partial<Category> = {}): Category {
   return {

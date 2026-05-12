@@ -50,13 +50,19 @@ export class CategoryNotOwnedError extends Error {
 }
 
 function assertCategoryOwned(db: Db, userId: number, categoryId: number): void {
-  const cat = db.select().from(categories)
+  const cat = db
+    .select()
+    .from(categories)
     .where(and(eq(categories.id, categoryId), eq(categories.userId, userId)))
     .get();
   if (!cat) throw new CategoryNotOwnedError();
 }
 
-export function listTransactions(db: Db, userId: number, filters: TransactionFilters = {}): Transaction[] {
+export function listTransactions(
+  db: Db,
+  userId: number,
+  filters: TransactionFilters = {},
+): Transaction[] {
   const conditions = [eq(transactions.userId, userId)];
 
   if (filters.categoryId !== undefined) {
@@ -80,33 +86,49 @@ export function listTransactions(db: Db, userId: number, filters: TransactionFil
     conditions.push(lte(transactions.amount, filters.amountMax));
   }
 
-  return db.select().from(transactions).where(and(...conditions)).all();
+  return db
+    .select()
+    .from(transactions)
+    .where(and(...conditions))
+    .all();
 }
 
 export function createTransaction(db: Db, userId: number, input: TransactionInput): Transaction {
   assertCategoryOwned(db, userId, input.categoryId);
-  const [tx] = db.insert(transactions).values({
-    userId,
-    categoryId: input.categoryId,
-    title: input.title,
-    amount: input.amount,
-    currency: input.currency,
-    transactionDate: input.transactionDate,
-    notes: input.notes ?? null,
-  }).returning().all();
+  const [tx] = db
+    .insert(transactions)
+    .values({
+      userId,
+      categoryId: input.categoryId,
+      title: input.title,
+      amount: input.amount,
+      currency: input.currency,
+      transactionDate: input.transactionDate,
+      notes: input.notes ?? null,
+    })
+    .returning()
+    .all();
   if (!tx) throw new Error('Insert returned no row');
   return tx;
 }
 
-export function updateTransaction(db: Db, userId: number, id: number, input: TransactionInput): Transaction {
-  const existing = db.select().from(transactions)
+export function updateTransaction(
+  db: Db,
+  userId: number,
+  id: number,
+  input: TransactionInput,
+): Transaction {
+  const existing = db
+    .select()
+    .from(transactions)
     .where(and(eq(transactions.id, id), eq(transactions.userId, userId)))
     .get();
   if (!existing) throw new TransactionNotFoundError();
 
   assertCategoryOwned(db, userId, input.categoryId);
 
-  const [updated] = db.update(transactions)
+  const [updated] = db
+    .update(transactions)
     .set({
       categoryId: input.categoryId,
       title: input.title,
@@ -117,13 +139,16 @@ export function updateTransaction(db: Db, userId: number, id: number, input: Tra
       updatedAt: new Date(),
     })
     .where(and(eq(transactions.id, id), eq(transactions.userId, userId)))
-    .returning().all();
+    .returning()
+    .all();
   if (!updated) throw new Error('Update returned no row');
   return updated;
 }
 
 export function deleteTransaction(db: Db, userId: number, id: number): void {
-  const existing = db.select().from(transactions)
+  const existing = db
+    .select()
+    .from(transactions)
     .where(and(eq(transactions.id, id), eq(transactions.userId, userId)))
     .get();
   if (!existing) throw new TransactionNotFoundError();

@@ -60,7 +60,13 @@ export function registerStrategies(db: Db): void {
         (
           _accessToken: string,
           _refreshToken: string,
-          profile: { id: string; displayName?: string; username?: string; emails?: { value: string }[]; photos?: { value: string }[] },
+          profile: {
+            id: string;
+            displayName?: string;
+            username?: string;
+            emails?: { value: string }[];
+            photos?: { value: string }[];
+          },
           done: (err: Error | null, user?: Express.User) => void,
         ) => {
           try {

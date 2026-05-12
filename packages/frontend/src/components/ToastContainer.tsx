@@ -21,8 +21,7 @@ function Toast({
         ? 'border-amber-500'
         : 'border-blue-500';
 
-  const title =
-    alert.threshold >= 100 ? 'Budget Exceeded' : `${alert.threshold}% Budget Used`;
+  const title = alert.threshold >= 100 ? 'Budget Exceeded' : `${alert.threshold}% Budget Used`;
 
   return (
     <div

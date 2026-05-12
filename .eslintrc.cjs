@@ -19,5 +19,5 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
-  ignorePatterns: ['dist/', 'node_modules/', '*.cjs', '*.mjs'],
+  ignorePatterns: ['dist/', 'node_modules/', '*.cjs', '*.mjs', 'drizzle.config.ts', 'vitest.config.ts', 'vite.config.ts', 'tailwind.config.ts'],
 };

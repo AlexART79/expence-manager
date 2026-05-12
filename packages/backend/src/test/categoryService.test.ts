@@ -17,7 +17,13 @@ describe('categories table', () => {
     try {
       const [user] = db
         .insert(users)
-        .values({ provider: 'test', providerUserId: 'u1', email: 'a@example.com', displayName: 'Alice', avatarUrl: null })
+        .values({
+          provider: 'test',
+          providerUserId: 'u1',
+          email: 'a@example.com',
+          displayName: 'Alice',
+          avatarUrl: null,
+        })
         .returning()
         .all();
 
@@ -42,12 +48,20 @@ describe('categories table', () => {
     try {
       const [user] = db
         .insert(users)
-        .values({ provider: 'test', providerUserId: 'u2', email: 'b@example.com', displayName: 'Bob', avatarUrl: null })
+        .values({
+          provider: 'test',
+          providerUserId: 'u2',
+          email: 'b@example.com',
+          displayName: 'Bob',
+          avatarUrl: null,
+        })
         .returning()
         .all();
 
       db.insert(categories).values({ userId: user!.id, name: 'Food' }).run();
-      expect(() => db.insert(categories).values({ userId: user!.id, name: 'Food' }).run()).toThrow();
+      expect(() =>
+        db.insert(categories).values({ userId: user!.id, name: 'Food' }).run(),
+      ).toThrow();
     } finally {
       sqlite.close();
     }
@@ -58,12 +72,24 @@ describe('categories table', () => {
     try {
       const [u1] = db
         .insert(users)
-        .values({ provider: 'test', providerUserId: 'u3', email: 'c@example.com', displayName: 'Carol', avatarUrl: null })
+        .values({
+          provider: 'test',
+          providerUserId: 'u3',
+          email: 'c@example.com',
+          displayName: 'Carol',
+          avatarUrl: null,
+        })
         .returning()
         .all();
       const [u2] = db
         .insert(users)
-        .values({ provider: 'test', providerUserId: 'u4', email: 'd@example.com', displayName: 'Dave', avatarUrl: null })
+        .values({
+          provider: 'test',
+          providerUserId: 'u4',
+          email: 'd@example.com',
+          displayName: 'Dave',
+          avatarUrl: null,
+        })
         .returning()
         .all();
 
@@ -82,7 +108,13 @@ describe('categoryService', () => {
     const { db, sqlite } = createTestDb();
     const [user] = db
       .insert(users)
-      .values({ provider: 'test', providerUserId: 'svc-u1', email: 'svc@test.com', displayName: 'SvcUser', avatarUrl: null })
+      .values({
+        provider: 'test',
+        providerUserId: 'svc-u1',
+        email: 'svc@test.com',
+        displayName: 'SvcUser',
+        avatarUrl: null,
+      })
       .returning()
       .all();
     return { db, sqlite, user: user! };
@@ -147,7 +179,9 @@ describe('categoryService', () => {
     try {
       createCategory(db, user.id, 'Alpha');
       const beta = createCategory(db, user.id, 'Beta');
-      expect(() => renameCategory(db, user.id, beta.id, 'Alpha')).toThrow(DuplicateCategoryNameError);
+      expect(() => renameCategory(db, user.id, beta.id, 'Alpha')).toThrow(
+        DuplicateCategoryNameError,
+      );
     } finally {
       sqlite.close();
     }
@@ -178,15 +212,17 @@ describe('categoryService', () => {
     const { db, sqlite, user } = setup();
     try {
       const cat = createCategory(db, user.id, 'Food');
-      db.insert(transactions).values({
-        userId: user.id,
-        categoryId: cat.id,
-        title: 'Groceries',
-        amount: 45.50,
-        currency: 'USD',
-        transactionDate: '2026-05-01',
-        notes: null,
-      }).run();
+      db.insert(transactions)
+        .values({
+          userId: user.id,
+          categoryId: cat.id,
+          title: 'Groceries',
+          amount: 45.5,
+          currency: 'USD',
+          transactionDate: '2026-05-01',
+          notes: null,
+        })
+        .run();
       expect(() => deleteCategory(db, user.id, cat.id)).toThrow(CategoryHasTransactionsError);
     } finally {
       sqlite.close();

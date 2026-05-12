@@ -9,6 +9,7 @@ import { logger } from './logger.js';
 const db = getDb();
 const sessionMiddleware = createSessionMiddleware();
 
+// eslint-disable-next-line prefer-const
 let notifyUserFn: ((userId: number, month: string) => void) | undefined;
 
 const app = createApp(db, sessionMiddleware, (userId, month) => notifyUserFn?.(userId, month));

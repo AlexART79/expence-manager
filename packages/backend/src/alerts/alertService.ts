@@ -39,12 +39,7 @@ function computeUsagePercent(db: Db, userId: number, month: string): number | nu
   const txns = db
     .select({ amount: transactions.amount })
     .from(transactions)
-    .where(
-      and(
-        eq(transactions.userId, userId),
-        like(transactions.transactionDate, `${month}-%`),
-      ),
-    )
+    .where(and(eq(transactions.userId, userId), like(transactions.transactionDate, `${month}-%`)))
     .all();
 
   const totalSpent = txns.reduce((sum, tx) => sum + tx.amount, 0);

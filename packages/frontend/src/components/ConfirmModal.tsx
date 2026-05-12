@@ -21,8 +21,12 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   const onCancelRef = useRef(onCancel);
   const isLoadingRef = useRef(isLoading);
-  useEffect(() => { onCancelRef.current = onCancel; });
-  useEffect(() => { isLoadingRef.current = isLoading; });
+  useEffect(() => {
+    onCancelRef.current = onCancel;
+  });
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  });
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isLoadingRef.current) onCancelRef.current();
@@ -45,9 +49,7 @@ export default function ConfirmModal({
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-gray-900 dark:text-dark-text mb-6">{message}</p>
-        {error && (
-          <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>}
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}

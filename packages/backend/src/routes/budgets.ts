@@ -41,28 +41,24 @@ export function createBudgetsRouter(db: Db): Router {
     },
   );
 
-  router.get(
-    '/:month',
-    validateRequest({ params: MonthParamsSchema }),
-    (req, res, next) => {
-      if (!req.user) {
-        return res.status(401).json({
-          error: { code: 'UNAUTHORIZED', message: 'Not authenticated', details: {} },
+  router.get('/:month', validateRequest({ params: MonthParamsSchema }), (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        error: { code: 'UNAUTHORIZED', message: 'Not authenticated', details: {} },
+      });
+    }
+    try {
+      const budget = getBudget(db, req.user.id, req.params.month as string);
+      return res.json(budget);
+    } catch (err) {
+      if (err instanceof BudgetNotFoundError) {
+        return res.status(404).json({
+          error: { code: 'NOT_FOUND', message: err.message, details: {} },
         });
       }
-      try {
-        const budget = getBudget(db, req.user.id, req.params.month as string);
-        return res.json(budget);
-      } catch (err) {
-        if (err instanceof BudgetNotFoundError) {
-          return res.status(404).json({
-            error: { code: 'NOT_FOUND', message: err.message, details: {} },
-          });
-        }
-        next(err);
-      }
-    },
-  );
+      next(err);
+    }
+  });
 
   router.put(
     '/:month',

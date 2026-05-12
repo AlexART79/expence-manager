@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createTestDb } from './db.js';
 import { checkAndDispatchAlerts } from '../alerts/alertService.js';
 import { users, categories, transactions, monthlyBudgets } from '../db/schema/index.js';
@@ -6,12 +6,16 @@ import { users, categories, transactions, monthlyBudgets } from '../db/schema/in
 function setup() {
   const { db, sqlite } = createTestDb();
 
-  const [user] = db.insert(users).values({
-    provider: 'test',
-    providerUserId: 'u1',
-    email: 'test@ex.com',
-    displayName: 'Tester',
-  }).returning().all();
+  const [user] = db
+    .insert(users)
+    .values({
+      provider: 'test',
+      providerUserId: 'u1',
+      email: 'test@ex.com',
+      displayName: 'Tester',
+    })
+    .returning()
+    .all();
   if (!user) throw new Error('user insert failed');
 
   const [cat] = db.insert(categories).values({ userId: user.id, name: 'Food' }).returning().all();
@@ -20,18 +24,31 @@ function setup() {
   return { db, sqlite, userId: user.id, categoryId: cat.id };
 }
 
-function addTransaction(db: ReturnType<typeof createTestDb>['db'], userId: number, categoryId: number, amount: number, month: string) {
-  db.insert(transactions).values({
-    userId,
-    categoryId,
-    title: 'Test',
-    amount,
-    currency: 'USD',
-    transactionDate: `${month}-01`,
-  }).run();
+function addTransaction(
+  db: ReturnType<typeof createTestDb>['db'],
+  userId: number,
+  categoryId: number,
+  amount: number,
+  month: string,
+) {
+  db.insert(transactions)
+    .values({
+      userId,
+      categoryId,
+      title: 'Test',
+      amount,
+      currency: 'USD',
+      transactionDate: `${month}-01`,
+    })
+    .run();
 }
 
-function setBudget(db: ReturnType<typeof createTestDb>['db'], userId: number, month: string, amount: number) {
+function setBudget(
+  db: ReturnType<typeof createTestDb>['db'],
+  userId: number,
+  month: string,
+  amount: number,
+) {
   db.insert(monthlyBudgets).values({ userId, month, amount, currency: 'USD' }).run();
 }
 
