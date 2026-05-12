@@ -48,7 +48,7 @@ export default function ConfirmButton({
       <button
         onClick={() => setIsOpen(true)}
         aria-label={iconLabel}
-        className={`p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors ${className}`}
+        className={`p-2 rounded-lg border border-gray-200 dark:border-dark-border text-gray-700 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${className}`}
       >
         <Icon size={16} />
       </button>

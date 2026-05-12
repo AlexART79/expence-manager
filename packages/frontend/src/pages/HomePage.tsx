@@ -198,7 +198,7 @@ export default function HomePage() {
             ) : (
               <button
                 onClick={openBudgetForm}
-                className="text-emerald-600 dark:text-emerald-400 underline"
+                className="text-emerald-600 dark:text-emerald-400 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
               >
                 Set budget
               </button>
@@ -296,7 +296,7 @@ export default function HomePage() {
               </p>
               <button
                 onClick={openBudgetForm}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
               >
                 Set Budget
               </button>

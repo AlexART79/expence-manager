@@ -32,8 +32,8 @@ function AppShell() {
                     end
                     className={({ isActive }) =>
                       isActive
-                        ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm'
-                        : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm'
+                        ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+                        : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
                     }
                   >
                     Dashboard
@@ -42,8 +42,8 @@ function AppShell() {
                     to="/categories"
                     className={({ isActive }) =>
                       isActive
-                        ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm'
-                        : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm'
+                        ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+                        : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
                     }
                   >
                     Categories
@@ -52,8 +52,8 @@ function AppShell() {
                     to="/transactions"
                     className={({ isActive }) =>
                       isActive
-                        ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm'
-                        : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm'
+                        ? 'px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-raised text-emerald-600 dark:text-emerald-400 font-medium text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+                        : 'px-3 py-1.5 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
                     }
                   >
                     Transactions
@@ -67,7 +67,7 @@ function AppShell() {
                 <button
                   onClick={logout}
                   aria-label="Sign out"
-                  className="p-2 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors"
+                  className="p-2 rounded-lg text-gray-500 dark:text-dark-text-muted hover:text-gray-700 dark:hover:text-dark-text-secondary hover:bg-gray-50 dark:hover:bg-dark-raised transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   <LogOut size={18} />
                 </button>
