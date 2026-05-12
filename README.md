@@ -275,15 +275,15 @@ All endpoints return JSON. Protected endpoints require a session cookie set afte
 ```json
 {
   "month": "2025-05",
-  "budget": 1000,
-  "spent": 420.50,
+  "budgetAmount": 1000,
+  "totalSpent": 420.50,
   "remaining": 579.50,
   "usagePercent": 42.05,
   "currency": "USD"
 }
 ```
 
-When no budget is set for the month, `budget`, `remaining`, and `usagePercent` are `null`.
+When no budget is set for the month, `budgetAmount`, `remaining`, and `usagePercent` are `null`.
 
 ## Architecture Decisions
 
