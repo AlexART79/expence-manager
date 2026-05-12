@@ -198,6 +198,93 @@ Migration files live in `packages/backend/src/db/migrations/` and are committed 
 
 Backend modules will be organized by feature area: `auth`, `users`, `categories`, `transactions`, `budgets`, `alerts`, `db`.
 
+## API Endpoints
+
+All endpoints return JSON. Protected endpoints require a session cookie set after a successful OAuth login (or the test-only stub at `POST /api/auth/test/login` when `NODE_ENV=test`).
+
+### Health
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/health` | No | Returns `{ "status": "ok", "timestamp": "<ISO string>" }` |
+
+### Auth
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/auth/me` | Yes | Returns the current authenticated user |
+| `POST` | `/api/auth/logout` | Yes | Destroys the session |
+| `GET` | `/api/auth/google` | No | Initiates OAuth flow — redirects to Google OIDC consent screen |
+| `GET` | `/api/auth/github` | No | Initiates OAuth flow — redirects to GitHub OAuth consent screen |
+
+`GET /api/auth/me` response shape:
+```json
+{ "id": 1, "email": "user@example.com", "displayName": "Ada", "avatarUrl": null, "provider": "google" }
+```
+
+### Categories
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/categories` | Yes | List all categories for the authenticated user |
+| `POST` | `/api/categories` | Yes | Create a category — body: `{ "name": "string" }` |
+| `PUT` | `/api/categories/:id` | Yes | Rename a category — body: `{ "name": "string" }` |
+| `DELETE` | `/api/categories/:id` | Yes | Delete a category (409 if transactions exist) |
+
+### Transactions
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/transactions` | Yes | List transactions with optional query filters |
+| `POST` | `/api/transactions` | Yes | Create a transaction |
+| `PUT` | `/api/transactions/:id` | Yes | Update a transaction |
+| `DELETE` | `/api/transactions/:id` | Yes | Delete a transaction |
+
+**Query parameters for `GET /api/transactions`:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `search` | string | Full-text search across title and notes |
+| `categoryId` | number | Filter by category ID |
+| `dateFrom` | YYYY-MM-DD | Earliest transaction date (inclusive) |
+| `dateTo` | YYYY-MM-DD | Latest transaction date (inclusive) |
+| `amountMin` | number | Minimum amount (inclusive) |
+| `amountMax` | number | Maximum amount (inclusive) |
+
+**Transaction body (`POST` and `PUT`):**
+```json
+{
+  "title": "Coffee",
+  "amount": 4.50,
+  "currency": "USD",
+  "transactionDate": "2025-05-10",
+  "categoryId": 3,
+  "notes": "optional"
+}
+```
+
+### Budgets
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/budgets/:month` | Yes | Get the budget for the given month (YYYY-MM); returns 404 if no budget set |
+| `GET` | `/api/budgets/:month/summary` | Yes | Spending summary: total spent, remaining, usage percentage |
+| `PUT` | `/api/budgets/:month` | Yes | Create or update a budget — body: `{ "amount": number, "currency": "USD" }` (currency optional, defaults to "USD") |
+
+**Summary response shape:**
+```json
+{
+  "month": "2025-05",
+  "budget": 1000,
+  "spent": 420.50,
+  "remaining": 579.50,
+  "usagePercent": 42.05,
+  "currency": "USD"
+}
+```
+
+When no budget is set for the month, `budget`, `remaining`, and `usagePercent` are `null`.
+
 ## Architecture Decisions
 
 **Category deletion:** Blocked when transactions exist. Attempting to delete a category that has associated transactions returns an error rather than cascading.
@@ -217,6 +304,55 @@ Backend modules will be organized by feature area: `auth`, `users`, `categories`
 ```
 
 **Budget alerts:** Sent at 50%, 80%, and 100% of the monthly budget. Each threshold fires at most once per calendar month, even if spending later drops below it.
+
+## WebSocket Protocol
+
+The backend exposes a WebSocket server on the same port as the HTTP API. The frontend connects automatically after session authentication is confirmed.
+
+**WebSocket URL:** Replace `http` with `ws` in `VITE_API_BASE_URL`, e.g. `ws://localhost:3000`.
+
+Unauthenticated connections are closed immediately with WebSocket close code `1008`.
+
+### Client → Server
+
+After connecting, the client sends a subscribe message to enable alert delivery:
+
+```json
+{
+  "type": "budget_alerts.subscribe",
+  "payload": { "month": "current" }
+}
+```
+
+Only `"month": "current"` is accepted. The server resolves it to the current calendar month (`YYYY-MM`).
+
+If the subscribe message is malformed or fails validation, the server sends no response and the subscription is not registered. The connection remains open.
+
+### Server → Client
+
+**Subscription confirmation** (sent after the subscribe message is accepted):
+
+```json
+{
+  "type": "budget_alerts.subscribed",
+  "payload": { "month": "2026-05" }
+}
+```
+
+**Budget threshold alert:**
+
+```json
+{
+  "type": "budget_alerts.alert",
+  "payload": {
+    "month": "2026-05",
+    "threshold": 80,
+    "usagePercent": 84.2
+  }
+}
+```
+
+`threshold` is one of `50`, `80`, or `100`. Each threshold fires **at most once per calendar month** — spending dropping below a threshold later does not reset it.
 
 ## API Error Shape
 
@@ -256,3 +392,7 @@ npm run test:watch -w packages/backend   # Watch mode for TDD
 ```
 
 The `startTestServer()` helper binds the Express app to a random OS-assigned port, so parallel test runs never conflict. The `createTestDb()` helper creates an isolated `:memory:` SQLite database per test.
+
+## Docker
+
+Docker packaging is not included. `better-sqlite3` compiles a native Node.js addon at install time that must match the target runtime platform. Cross-compiling the native module for a Linux container image from Windows or macOS requires additional tooling (QEMU, cross-compilation flags, or building inside WSL) without meaningful benefit for a local development or portfolio context. Use the [Local Setup](#local-setup) instructions to run the app directly.
