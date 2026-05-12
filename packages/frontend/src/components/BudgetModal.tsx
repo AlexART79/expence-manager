@@ -76,7 +76,7 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
         </h3>
         <form onSubmit={handleSubmit}>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm text-gray-400 dark:text-dark-text-muted">USD $</span>
+            <span className="text-sm text-gray-400 dark:text-dark-text-muted whitespace-nowrap">USD $</span>
             <input
               type="number"
               min="0.01"
@@ -84,7 +84,7 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={budget ? String(budget.amount) : '1000'}
-              className="w-40 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-raised text-gray-900 dark:text-dark-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-raised text-gray-900 dark:text-dark-text rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               disabled={saving}
               autoFocus
             />
@@ -92,7 +92,7 @@ export default function BudgetModal({ isOpen, month, budget, onClose, onSuccess 
           {error && (
             <p className="text-xs text-red-500 mb-3">{error}</p>
           )}
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 mt-5">
             <button
               type="button"
               onClick={onClose}
