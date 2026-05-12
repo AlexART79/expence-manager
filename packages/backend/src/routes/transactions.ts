@@ -14,6 +14,12 @@ import {
 import type { getDb } from '../db/connection.js';
 
 type Db = ReturnType<typeof getDb>;
+type NotifyAlerts = (userId: number, month: string) => void;
+
+function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
 
 const TransactionBodySchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -39,7 +45,7 @@ const TransactionQuerySchema = z.object({
 
 const UNAUTHORIZED = { error: { code: 'UNAUTHORIZED', message: 'Not authenticated', details: {} } };
 
-export function createTransactionsRouter(db: Db): Router {
+export function createTransactionsRouter(db: Db, notifyAlerts?: NotifyAlerts): Router {
   const router = Router();
 
   router.get('/', validateRequest({ query: TransactionQuerySchema }), (req, res) => {
@@ -53,6 +59,7 @@ export function createTransactionsRouter(db: Db): Router {
     try {
       const input = req.body as TransactionInput;
       const tx = createTransaction(db, req.user.id, input);
+      notifyAlerts?.(req.user.id, getCurrentMonth());
       return res.status(201).json(tx);
     } catch (err) {
       if (err instanceof CategoryNotOwnedError) {
@@ -67,6 +74,7 @@ export function createTransactionsRouter(db: Db): Router {
     try {
       const input = req.body as TransactionInput;
       const tx = updateTransaction(db, req.user.id, Number(req.params.id), input);
+      notifyAlerts?.(req.user.id, getCurrentMonth());
       return res.json(tx);
     } catch (err) {
       if (err instanceof TransactionNotFoundError) {
@@ -83,6 +91,7 @@ export function createTransactionsRouter(db: Db): Router {
     if (!req.user) return res.status(401).json(UNAUTHORIZED);
     try {
       deleteTransaction(db, req.user.id, Number(req.params.id));
+      notifyAlerts?.(req.user.id, getCurrentMonth());
       return res.status(204).send();
     } catch (err) {
       if (err instanceof TransactionNotFoundError) {

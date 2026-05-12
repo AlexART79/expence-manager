@@ -1,4 +1,4 @@
-import express, { type Application } from 'express';
+import express, { type Application, type RequestHandler } from 'express';
 import cors from 'cors';
 import { pinoHttp } from 'pino-http';
 import passport from 'passport';
@@ -14,7 +14,9 @@ import { registerStrategies } from './auth/strategies.js';
 import { getDb } from './db/connection.js';
 import { env } from './env.js';
 
-export function createApp(db = getDb()): Application {
+type NotifyAlerts = (userId: number, month: string) => void;
+
+export function createApp(db = getDb(), sessionMiddleware: RequestHandler = createSessionMiddleware(), notifyAlerts?: NotifyAlerts): Application {
   const app = express();
 
   registerStrategies(db);
@@ -22,14 +24,14 @@ export function createApp(db = getDb()): Application {
   app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
   app.use(express.json());
   app.use(pinoHttp({ logger }));
-  app.use(createSessionMiddleware());
+  app.use(sessionMiddleware);
   app.use(passport.initialize());
   app.use(passport.session());
 
   app.use('/health', healthRouter);
   app.use('/api/auth', createAuthRouter(db));
   app.use('/api/categories', createCategoriesRouter(db));
-  app.use('/api/transactions', createTransactionsRouter(db));
+  app.use('/api/transactions', createTransactionsRouter(db, notifyAlerts));
   app.use('/api/budgets', createBudgetsRouter(db));
 
   app.use((_req, res) => {
