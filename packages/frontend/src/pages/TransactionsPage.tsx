@@ -124,7 +124,7 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div>
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-dark-text">
           Transactions
