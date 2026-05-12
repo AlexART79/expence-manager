@@ -10,6 +10,7 @@ import ThemeToggle from './components/ThemeToggle.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import { WebSocketProvider } from './context/WebSocketContext.tsx';
 import ToastContainer from './components/ToastContainer.tsx';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
 
 function AppShell() {
   const { user, logout, loading } = useAuth();
@@ -112,10 +113,12 @@ function AppShell() {
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/*" element={<AppShell />} />
-      </Routes>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/*" element={<AppShell />} />
+        </Routes>
+      </ErrorBoundary>
     </AuthProvider>
   );
 }
