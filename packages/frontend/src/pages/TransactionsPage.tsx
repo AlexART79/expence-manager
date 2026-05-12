@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Receipt } from 'lucide-react';
 import {
   listTransactions,
   createTransaction,
@@ -133,9 +133,23 @@ export default function TransactionsPage() {
       </div>
 
       {transactions.length === 0 ? (
-        <p className="mt-4 text-gray-500 dark:text-dark-text-secondary">
-          No transactions yet
-        </p>
+        <div
+          data-testid="transactions-empty-state"
+          className="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-dark-border shadow-sm py-16 flex flex-col items-center gap-4 text-center"
+        >
+          <Receipt size={40} className="text-gray-300 dark:text-dark-text-muted" />
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-dark-text mb-1">No transactions yet</p>
+            <p className="text-sm text-gray-400 dark:text-dark-text-muted">Add your first expense to get started.</p>
+          </div>
+          <button
+            onClick={handleCreate}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+          >
+            <Plus size={16} />
+            Add Transaction
+          </button>
+        </div>
       ) : (
         <div className="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-dark-border shadow-sm overflow-x-auto">
           <table className="w-full border-collapse">

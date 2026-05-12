@@ -42,7 +42,8 @@ describe('CategoriesPage', () => {
     vi.spyOn(categoriesLib, 'listCategories').mockResolvedValue([]);
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('No categories yet.')).toBeInTheDocument();
+      expect(screen.getByTestId('categories-empty-state')).toBeInTheDocument();
+      expect(screen.getByText(/no categories yet/i)).toBeInTheDocument();
     });
   });
 
@@ -74,7 +75,7 @@ describe('CategoriesPage', () => {
     );
 
     renderPage();
-    await waitFor(() => expect(screen.getByText('No categories yet.')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/no categories yet/i)).toBeInTheDocument());
 
     await user.type(screen.getByPlaceholderText('Category name'), 'New Category');
     await user.click(screen.getByRole('button', { name: /add/i }));
@@ -93,7 +94,7 @@ describe('CategoriesPage', () => {
     );
 
     renderPage();
-    await waitFor(() => expect(screen.getByText('No categories yet.')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/no categories yet/i)).toBeInTheDocument());
 
     const input = screen.getByPlaceholderText('Category name') as HTMLInputElement;
     await user.type(input, 'Cleared');
@@ -112,7 +113,7 @@ describe('CategoriesPage', () => {
     );
 
     renderPage();
-    await waitFor(() => expect(screen.getByText('No categories yet.')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/no categories yet/i)).toBeInTheDocument());
 
     await user.type(screen.getByPlaceholderText('Category name'), 'Duplicate');
     await user.click(screen.getByRole('button', { name: /add/i }));

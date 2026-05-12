@@ -57,10 +57,11 @@ describe('TransactionsPage', () => {
     expect(screen.getByTestId('transactions-loading-skeleton')).toBeInTheDocument();
   });
 
-  it('shows empty state when there are no transactions', async () => {
+  it('shows empty state with add button when there are no transactions', async () => {
     vi.spyOn(txLib, 'listTransactions').mockResolvedValue([]);
     renderPage();
     await waitFor(() => {
+      expect(screen.getByTestId('transactions-empty-state')).toBeInTheDocument();
       expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument();
     });
   });
@@ -103,7 +104,7 @@ describe('TransactionsPage', () => {
     renderPage();
     await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
 
-    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+    await user.click(screen.getAllByRole('button', { name: /add transaction/i })[0]!);
 
     expect(screen.getByRole('heading', { name: /new transaction/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Title')).toBeInTheDocument();
@@ -233,7 +234,7 @@ describe('TransactionsPage', () => {
     renderPage();
     await waitFor(() => expect(screen.getByText(/no transactions yet/i)).toBeInTheDocument());
 
-    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+    await user.click(screen.getAllByRole('button', { name: /add transaction/i })[0]!);
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: /new transaction/i })).toBeInTheDocument(),
     );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, Tag } from 'lucide-react';
 import {
   listCategories,
   createCategory,
@@ -108,7 +108,18 @@ export default function CategoriesPage() {
       )}
 
       {cats.length === 0 ? (
-        <p className="mt-4 text-gray-500 dark:text-dark-text-secondary">No categories yet.</p>
+        <div
+          data-testid="categories-empty-state"
+          className="py-16 flex flex-col items-center gap-3 text-center"
+        >
+          <Tag size={36} className="text-gray-300 dark:text-dark-text-muted" />
+          <div>
+            <p className="text-sm font-medium text-gray-900 dark:text-dark-text mb-1">No categories yet</p>
+            <p className="text-sm text-gray-400 dark:text-dark-text-muted">
+              Create a category to organize your transactions.
+            </p>
+          </div>
+        </div>
       ) : (
         <ul className="space-y-2">
           {cats.map((cat) => (
